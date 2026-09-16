@@ -1,15 +1,21 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+interface PricePoint {
+  month: string;
+  price: number;
+  isForecast?: boolean;
+}
 
 export default function PriceIntelligence() {
   // Mock data
-  const currentPrice = 25.50; // per kg
+  const currentPrice = 25.5; // per kg
   const priceChange = 2.3; // % change from yesterday
   const priceChangeDirection = priceChange >= 0 ? "up" : "down";
 
   // Historical data (last 6 months)
-  const historicalData = [
+  const historicalData: PricePoint[] = [
     { month: "Apr", price: 22.0 },
     { month: "May", price: 23.5 },
     { month: "Jun", price: 24.0 },
@@ -22,13 +28,13 @@ export default function PriceIntelligence() {
   ];
 
   // Forecast data (next 3 months)
-  const forecastData = [
+  const forecastData: PricePoint[] = [
     { month: "Jan", price: 26.0, isForecast: true },
     { month: "Feb", price: 26.5, isForecast: true },
     { month: "Mar", price: 27.0, isForecast: true },
   ];
 
-  const allData = [...historicalData, ...forecastData];
+  const allData: PricePoint[] = [...historicalData, ...forecastData];
 
   const maxPrice = Math.max(...allData.map((d) => d.price));
   const minPrice = Math.min(...allData.map((d) => d.price));
@@ -47,16 +53,20 @@ export default function PriceIntelligence() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Price per kg</p>
-                  <p className="text-3xl font-bold text-foreground">₹{currentPrice.toFixed(2)}</p>
+                  <p className="text-3xl font-bold text-foreground">
+                    &pound;{currentPrice.toFixed(2)}
+                  </p>
                 </div>
                 <Badge
                   variant={priceChangeDirection === "up" ? "default" : "destructive"}
                 >
-                  {priceChangeDirection === "up" ? `+${priceChange}%` : `${priceChange}%`}
+                  {priceChangeDirection === "up"
+                    ? `+${priceChange}%`
+                    : `${priceChange}%`}
                 </Badge>
               </div>
               <p className="text-muted-foreground text-sm">
-                As of today • Mandi: Delhi
+                As of today &bull; Mandi: Delhi
               </p>
             </CardContent>
           </Card>
@@ -91,7 +101,6 @@ export default function PriceIntelligence() {
                 <div className="absolute inset-0">
                   <div className="h-full w-full flex items-end">
                     {allData.map((point, index) => {
-                      const xPercent = (index / (allData.length - 1)) * 100;
                       const yPercent =
                         ((point.price - minPrice) / priceRange) * 100;
                       return (
@@ -100,9 +109,10 @@ export default function PriceIntelligence() {
                           className="flex-1 flex items-end justify-center"
                         >
                           <div
-                            className={`w-2 h-[${yPercent}%] bg-primary transition-all duration-500 ${
+                            className={`w-2 bg-primary transition-all duration-500 ${
                               point.isForecast ? "bg-primary/50" : ""
                             }`}
+                            style={{ height: `${yPercent}%` }}
                           />
                           <div className="text-xs text-muted-foreground mt-1 w-full text-center">
                             {point.month}
@@ -150,23 +160,22 @@ export default function PriceIntelligence() {
                   <div key={point.month} className="p-3 bg-muted rounded-lg">
                     <div className="flex justify-between">
                       <span className="font-medium">{point.month}</span>
-                      <span className="font-mono">₹{point.price.toFixed(2)}</span>
+                      <span className="font-mono">
+                        &pound;{point.price.toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Forecast horizon: 3 months • Data freshness: Updated today
+                Forecast horizon: 3 months &bull; Data freshness: Updated today
               </p>
             </CardContent>
           </Card>
 
           {/* Action Button */}
           <div className="flex justify-end">
-            <Button
-              onClick={() => {}}
-              className="mt-4"
-            >
+            <Button onClick={() => {}} className="mt-4">
               View Detailed Report
             </Button>
           </div>
