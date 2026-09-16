@@ -100,7 +100,7 @@ export default function PriceIntelligence() {
                 {/* Line chart */}
                 <div className="absolute inset-0">
                   <div className="h-full w-full flex items-end">
-                    {allData.map((point, index) => {
+                    {allData.map((point: PricePoint, index) => {
                       const yPercent =
                         ((point.price - minPrice) / priceRange) * 100;
                       return (
