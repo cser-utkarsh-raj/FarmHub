@@ -1,40 +1,41 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { farmHubApi } from "@/lib/api";
+
+function normalizeCategory(value: string) {
+  return value.trim().toLowerCase();
+}
 
 export default function CropSelection() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-
+  const [params, setParams] = useSearchParams();
   const category = params.get("category") || "all";
+  const { data: crops = [], isLoading, error } = useQuery({
+    queryKey: ["crops"],
+    queryFn: () => farmHubApi.getCrops(),
+  });
 
-  const crops = [
-    { id: 1, name: "Wheat", category: "grains", variety: "HD 3086" },
-    { id: 2, name: "Rice", category: "grains", variety: "Swarna" },
-    { id: 3, name: "Cotton", category: "fiber", variety: "Bt Cotton" },
-    { id: 4, name: "Sugarcane", category: "fiber", variety: "Co 0238" },
-    { id: 5, name: "Mustard", category: "oilseeds", variety: "Varuna" },
-    { id: 6, name: "Groundnut", category: "oilseeds", variety: "GG 20" },
-    { id: 7, name: "Potato", category: "vegetables", variety: "Kufri Jyoti" },
-    { id: 8, name: "Onion", category: "vegetables", variety: "Arka Kalyan" },
-    { id: 9, name: "Tomato", category: "vegetables", variety: "Arka Saurabh" },
-    { id: 10, name: "Mango", category: "fruits", variety: "Alphonso" },
-    { id: 11, name: "Banana", category: "fruits", variety: "Grand Naine" },
-    { id: 12, name: "Apple", category: "fruits", variety: "Red Delicious" },
-  ];
+  const categories = useMemo(() => {
+    const values = new Map<string, string>();
+    crops.forEach((crop) => values.set(normalizeCategory(crop.category), crop.category));
+    return ["all", ...Array.from(values.keys())];
+  }, [crops]);
 
   const filteredCrops = crops.filter((crop) => {
-    const matchesSearch = crop.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "all" || crop.category === category;
+    const matchesSearch = crop.name.toLowerCase().includes(search.toLowerCase()) || crop.name_hi.includes(search);
+    const matchesCategory = category === "all" || normalizeCategory(crop.category) === category;
     return matchesSearch && matchesCategory;
   });
 
-  const handleSelect = (crop: any) => {
-    navigate(`/crop-plan?crop=${crop.id}&name=${encodeURIComponent(crop.name)}&variety=${crop.variety}`);
+  const handleSelect = (crop: (typeof crops)[number]) => {
+    localStorage.setItem("farmhub_selected_crop", crop.name);
+    localStorage.setItem("farmhub_selected_variety", crop.id);
+    navigate(`/crop-plan?name=${encodeURIComponent(crop.name)}`);
   };
 
   return (
@@ -51,39 +52,40 @@ export default function CropSelection() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <Button variant="outline" onClick={() => setSearch("")}>
-                Clear
-              </Button>
+              <Button variant="outline" onClick={() => setSearch("")}>Clear</Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {["all", "grains", "fiber", "oilseeds", "vegetables", "fruits"].map(
-                (cat) => (
-                  <Button
-                    key={cat}
-                    variant={cat === category ? "default" : "outline"}
-                    className="flex-1"
-                  >
-                    {cat === "all" ? "All" : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </Button>
-                ),
-              )}
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={cat === category ? "default" : "outline"}
+                  onClick={() => {
+                    const next = new URLSearchParams(params);
+                    if (cat === "all") next.delete("category");
+                    else next.set("category", cat);
+                    setParams(next);
+                  }}
+                >
+                  {cat === "all" ? "All" : crops.find((c) => normalizeCategory(c.category) === cat)?.category ?? cat}
+                </Button>
+              ))}
             </div>
+
+            {isLoading && <p className="text-sm text-muted-foreground">Loading Bihar crops…</p>}
+            {error && <p className="text-sm text-destructive">Unable to load the crop catalogue. Please try again.</p>}
+
+            {!isLoading && !error && filteredCrops.length === 0 && (
+              <p className="text-sm text-muted-foreground">No crops match your search.</p>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCrops.map((crop) => (
                 <Card key={crop.id} className="p-4 hover:shadow-lg transition-shadow">
                   <h3 className="font-bold text-foreground mb-1">{crop.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {crop.variety}
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSelect(crop)}
-                    className="w-full mt-2"
-                  >
-                    Select
-                  </Button>
+                  <p className="text-sm text-muted-foreground">{crop.name_hi}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{crop.category} · {crop.duration_days} days</p>
+                  <Button size="sm" onClick={() => handleSelect(crop)} className="w-full mt-3">Select</Button>
                 </Card>
               ))}
             </div>
