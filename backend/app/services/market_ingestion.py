@@ -5,59 +5,33 @@ Architecture: External Data -> Ingestion -> Validation -> Normalization -> Datab
 """
 from datetime import datetime, date
 from typing import List, Dict, Any, Optional, Tuple
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 from backend.app.models.market_price import MandiRecord
 from backend.app.core.logging import logger
 
-# Canonical crop normalization mapping
 COMMODITY_ALIASES = {
-    "makka": "Maize",
-    "corn": "Maize",
-    "maize": "Maize",
-    "gehun": "Wheat",
-    "wheat": "Wheat",
-    "dhaan": "Paddy",
-    "paddy": "Paddy",
-    "rice": "Paddy",
-    "chawal": "Paddy",
-    "alu": "Potato",
-    "aloo": "Potato",
-    "potato": "Potato",
-    "pyaaz": "Onion",
-    "pyaj": "Onion",
-    "onion": "Onion",
-    "tamatar": "Tomato",
-    "tomato": "Tomato",
-    "sarson": "Mustard",
-    "rai": "Mustard",
-    "mustard": "Mustard",
-    "chana": "Gram",
-    "gram": "Gram",
-    "chana (gram)": "Gram",
-    "phoolgobhi": "Cauliflower",
-    "cauliflower": "Cauliflower"
+    "makka": "Maize", "corn": "Maize", "maize": "Maize",
+    "gehun": "Wheat", "wheat": "Wheat",
+    "dhaan": "Paddy", "paddy": "Paddy", "rice": "Paddy", "chawal": "Paddy",
+    "alu": "Potato", "aloo": "Potato", "potato": "Potato",
+    "pyaaz": "Onion", "pyaj": "Onion", "onion": "Onion",
+    "tamatar": "Tomato", "tomato": "Tomato",
+    "sarson": "Mustard", "rai": "Mustard", "mustard": "Mustard",
+    "chana": "Gram", "gram": "Gram", "chana (gram)": "Gram",
+    "phoolgobhi": "Cauliflower", "cauliflower": "Cauliflower",
 }
 
-# Mandi market normalization mapping for Bihar
 MARKET_ALIASES = {
-    "gulabbagh": "Gulabbagh (Purnia)",
-    "purnia": "Gulabbagh (Purnia)",
-    "gulabbagh (purnia)": "Gulabbagh (Purnia)",
-    "patna": "Patna (Gulzarbagh)",
-    "gulzarbagh": "Patna (Gulzarbagh)",
-    "mithapur": "Patna (Mithapur)",
-    "bihar sharif": "Bihar Sharif (Nalanda)",
-    "nalanda": "Bihar Sharif (Nalanda)",
-    "muzaffarpur": "Muzaffarpur (Brahmpura)",
-    "brahmpura": "Muzaffarpur (Brahmpura)",
-    "samastipur": "Samastipur",
-    "begusarai": "Begusarai",
-    "bhagalpur": "Bhagalpur",
-    "gaya": "Gaya",
-    "sasaram": "Sasaram (Rohtas)",
-    "hajipur": "Hajipur (Vaishali)"
+    "gulabbagh": "Gulabbagh (Purnia)", "purnia": "Gulabbagh (Purnia)",
+    "gulabbagh (purnia)": "Gulabbagh (Purnia)", "patna": "Patna (Gulzarbagh)",
+    "gulzarbagh": "Patna (Gulzarbagh)", "mithapur": "Patna (Mithapur)",
+    "bihar sharif": "Bihar Sharif (Nalanda)", "nalanda": "Bihar Sharif (Nalanda)",
+    "muzaffarpur": "Muzaffarpur (Brahmpura)", "brahmpura": "Muzaffarpur (Brahmpura)",
+    "samastipur": "Samastipur", "begusarai": "Begusarai", "bhagalpur": "Bhagalpur",
+    "gaya": "Gaya", "sasaram": "Sasaram (Rohtas)", "hajipur": "Hajipur (Vaishali)",
 }
+
 
 class RawMandiPayload(BaseModel):
     market: str
@@ -70,7 +44,8 @@ class RawMandiPayload(BaseModel):
     modal_price: Optional[float] = None
     arrivals_volume: Optional[float] = 0.0
     unit: Optional[str] = "INR/quintal"
-    record_date: str  # YYYY-MM-DD
+    record_date: str
+
 
 class NormalizedMandiRecord(BaseModel):
     market: str
@@ -85,44 +60,34 @@ class NormalizedMandiRecord(BaseModel):
     unit: str
     record_date: date
 
+
 def validate_and_normalize(raw: Dict[str, Any]) -> Tuple[Optional[NormalizedMandiRecord], Optional[str]]:
-    """
-    Validates schema constraints, normalizes aliases and units, and enforces price sanity.
-    """
+    """Validate schema constraints, normalize aliases and enforce price sanity."""
     try:
         parsed = RawMandiPayload(**raw)
-    except ValidationError as e:
-        return None, f"Schema validation error: {str(e)}"
+    except ValidationError as exc:
+        return None, f"Schema validation error: {exc}"
 
-    # Normalize commodity
-    comm_clean = parsed.commodity.strip().lower()
-    canonical_comm = COMMODITY_ALIASES.get(comm_clean)
+    canonical_comm = COMMODITY_ALIASES.get(parsed.commodity.strip().lower())
     if not canonical_comm:
         return None, f"Commodity '{parsed.commodity}' is outside Bihar V1 supported scope."
 
-    # Normalize market
-    mkt_clean = parsed.market.strip().lower()
-    canonical_mkt = MARKET_ALIASES.get(mkt_clean, parsed.market.strip())
-
-    # Date parsing
+    canonical_mkt = MARKET_ALIASES.get(parsed.market.strip().lower(), parsed.market.strip())
     try:
         parsed_date = datetime.strptime(parsed.record_date, "%Y-%m-%d").date()
     except ValueError:
         return None, f"Invalid date format '{parsed.record_date}'. Must be YYYY-MM-DD."
 
-    # Price sanity validation
     if parsed.min_price <= 0 or parsed.max_price <= 0:
         return None, "Prices must be positive numbers."
     if parsed.min_price > parsed.max_price:
         return None, f"Min price ({parsed.min_price}) cannot exceed max price ({parsed.max_price})."
 
     modal = parsed.modal_price
-    if modal is None or modal <= 0:
-        modal = round((parsed.min_price + parsed.max_price) / 2.0, 2)
-    elif modal < parsed.min_price or modal > parsed.max_price:
+    if modal is None or modal <= 0 or modal < parsed.min_price or modal > parsed.max_price:
         modal = round((parsed.min_price + parsed.max_price) / 2.0, 2)
 
-    norm_record = NormalizedMandiRecord(
+    return NormalizedMandiRecord(
         market=canonical_mkt,
         district=parsed.district.strip(),
         state=parsed.state.strip() or "Bihar",
@@ -133,14 +98,12 @@ def validate_and_normalize(raw: Dict[str, Any]) -> Tuple[Optional[NormalizedMand
         modal_price=round(modal, 2),
         arrivals_volume=max(0.0, float(parsed.arrivals_volume or 0.0)),
         unit="INR/quintal",
-        record_date=parsed_date
-    )
-    return norm_record, None
+        record_date=parsed_date,
+    ), None
+
 
 def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Ingests, validates, normalizes, and upserts a batch of market records into the database.
-    """
+    """Validate, normalize and upsert a batch of market records."""
     ingested_count = 0
     rejected_count = 0
     rejections = []
@@ -152,11 +115,15 @@ def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[s
             rejections.append({"payload": raw, "reason": err})
             continue
 
-        # Check existing record to avoid duplicate entries for same market, crop and date
+        # Include the complete series identity: a market can report multiple
+        # varieties for the same commodity on the same day.
         existing = db.query(MandiRecord).filter(
+            MandiRecord.state == norm.state,
+            MandiRecord.district == norm.district,
             MandiRecord.market == norm.market,
             MandiRecord.commodity == norm.commodity,
-            MandiRecord.record_date == norm.record_date
+            MandiRecord.variety == norm.variety,
+            MandiRecord.record_date == norm.record_date,
         ).first()
 
         if existing:
@@ -164,9 +131,9 @@ def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[s
             existing.max_price = norm.max_price
             existing.modal_price = norm.modal_price
             existing.arrivals_volume = norm.arrivals_volume
-            existing.variety = norm.variety
+            existing.unit = norm.unit
         else:
-            new_record = MandiRecord(
+            db.add(MandiRecord(
                 market=norm.market,
                 district=norm.district,
                 state=norm.state,
@@ -177,17 +144,19 @@ def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[s
                 modal_price=norm.modal_price,
                 arrivals_volume=norm.arrivals_volume,
                 unit=norm.unit,
-                record_date=norm.record_date
-            )
-            db.add(new_record)
-
+                record_date=norm.record_date,
+            ))
         ingested_count += 1
 
     db.commit()
-    logger.info(f"Mandi Ingestion Complete: {ingested_count} processed, {rejected_count} rejected.")
+    logger.info(
+        "Mandi Ingestion Complete: %s processed, %s rejected.",
+        ingested_count,
+        rejected_count,
+    )
     return {
         "status": "success",
         "ingested_count": ingested_count,
         "rejected_count": rejected_count,
-        "rejections": rejections[:10]  # sample if any
+        "rejections": rejections[:10],
     }
