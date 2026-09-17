@@ -120,7 +120,17 @@ Frontend integrations should follow the backend contract instead of inventing pa
 
 ## Data and ML
 
-FarmHub's long-term intelligence layer is intended to use real historical market observations and reproducible forecasting/backtesting pipelines.
+FarmHub's price intelligence uses the official data.gov.in resource **9ef84268-d588-465a-a308-a864a43d0070**, the Government of India's current daily commodity/mandi price resource generated through AGMARKNET.
+
+The ingestion pipeline:
+
+1. Fetches Bihar observations with the resource's JSON GET API.
+2. Handles API/key-level page-size limits without skipping records.
+3. Normalizes commodity, market, variety, grade, date and price fields.
+4. Removes invalid prices and duplicate observations.
+5. Builds leakage-safe lag and rolling features per market/crop series.
+6. Trains and backtests the forecasting model chronologically.
+7. Produces held-out residual-based prediction intervals.
 
 A model is only considered production intelligence when its:
 
@@ -131,42 +141,33 @@ A model is only considered production intelligence when its:
 5. error metrics are reported, and
 6. uncertainty/prediction intervals are honestly represented.
 
-Heuristic/demo forecasts must not be presented as trained ML models.
+Heuristic/demo forecasts must not be presented as trained ML models. A trained model artifact is deliberately not committed to Git; it must be generated from verified data and installed through the deployment pipeline.
 
 ## Privacy and verification
 
 FarmHub should not store raw Aadhaar numbers. Verification is represented through verification status/appropriate external verification mechanisms rather than retaining unnecessary identity documents.
 
-Secrets, passwords, JWT keys and credentials must remain outside source control.
+Secrets, passwords, JWT keys, ingestion keys and API credentials must remain outside source control.
 
 ## Agent development rules
 
-FarmHub is developed by multiple agents. The repository is treated as a shared codebase.
+FarmHub is developed as a shared codebase.
 
 ### Ownership
 
 - **Frontend agent:** `frontend/`
 - **Backend agent:** `backend/`
-- **Integration:** repository-level coordination and final merges
+- **ML/data:** `backend/ml/`
+- **Integration:** repository-level coordination and final validation
 
 ### Git workflow
 
-Agents must **not commit directly to `main`**.
+For this repository, requested fixes and implementation work should be applied directly to `main` unless the user explicitly asks for a separate branch or PR.
 
-Use task branches such as:
-
-```text
-agy/<task-name>
-dyad/<task-name>
-```
-
-Then open a PR into `main`.
-
-Before changing anything, an agent must inspect the current repository and work from the latest state. It must not initialize a new repository, create unrelated Git history, force-push, reset `main`, or replace another agent's work.
+Agents must inspect the current repository before changing anything. They must not initialize a new repository, create unrelated Git history, reset `main`, force-push, or replace another agent's work.
 
 Every completed task should report:
 
-- branch name,
 - commit SHA,
 - files changed,
 - tests/build checks performed,
@@ -175,7 +176,7 @@ Every completed task should report:
 
 ## Status
 
-FarmHub is under active development. The architecture and backend foundation are in place; frontend-to-backend integration and real market/forecast intelligence are ongoing.
+FarmHub is under active development. The backend foundation and executable ML pipeline are in place; real-data model training/deployment and frontend-to-backend integration remain active work.
 
 ---
 
