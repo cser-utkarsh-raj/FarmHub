@@ -1,8 +1,0 @@
-{
-  "name": "Shennong",
-  "description": "Agricultural Intelligence, Mandi Market Rates & AI Price Forecasting Platform",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

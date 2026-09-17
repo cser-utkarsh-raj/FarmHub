@@ -33,7 +33,7 @@ export default function CropSelection() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleSelect = (crop: { id: number; name: string; variety: string; category: string }) => {
+  const handleSelect = (crop: any) => {
     navigate(`/crop-plan?crop=${crop.id}&name=${encodeURIComponent(crop.name)}&variety=${crop.variety}`);
   };
 
