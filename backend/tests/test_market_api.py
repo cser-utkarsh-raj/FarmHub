@@ -65,8 +65,7 @@ def test_ingestion_pipeline_validation():
             "record_date": "2026-09-15"
         }
     ]
-    headers = {"X-Mandi-Ingestion-Key": "test-mandi-ingestion-key"}
-    res = client.post("/api/market/ingest", json=records, headers=headers)
+    res = client.post("/api/market/ingest", json=records)
     assert res.status_code == 200
     res_data = res.json()
     assert res_data["ingested_count"] == 1
@@ -84,7 +83,7 @@ def test_ingestion_pipeline_validation():
             "record_date": "2026-09-15"
         }
     ]
-    bad_res = client.post("/api/market/ingest", json=invalid_records, headers=headers)
+    bad_res = client.post("/api/market/ingest", json=invalid_records)
     assert bad_res.status_code == 200
     bad_data = bad_res.json()
     assert bad_data["rejected_count"] == 1
