@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=sqlite:///./farmhub.db
+      - SECRET_KEY=farmhub-production-secure-secret-key-change-in-prod-2026
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+    volumes:
+      - farmhub-data:/app/backend/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  farmhub-data:
