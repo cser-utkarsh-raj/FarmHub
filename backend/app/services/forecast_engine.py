@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from pathlib import Path
 from typing import List
+import os
 import pandas as pd
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
@@ -49,7 +50,8 @@ def generate_price_forecast(request:ForecastRequest,db:Session)->ForecastRespons
     records=(db.query(MandiRecord).filter(MandiRecord.state.ilike("Bihar")).filter(MandiRecord.district.ilike(request.location)).filter(MandiRecord.market.ilike(request.market)).filter(MandiRecord.commodity.ilike(request.crop)).order_by(MandiRecord.record_date.asc()).all())
     if len(records)<30: raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail="Not enough verified Bihar mandi history is available for this crop/market. The forecast model requires at least 30 observations.")
     history=pd.DataFrame([{"state":r.state,"district":r.district,"market":r.market,"commodity":r.commodity,"variety":r.variety or "UNKNOWN","grade":"UNKNOWN","date":r.record_date,"min_price":r.min_price,"max_price":r.max_price,"modal_price":r.modal_price} for r in records])
-    artifact_path=Path(__file__).resolve().parents[2]/"ml"/"models"/"price_forecaster.joblib"
+    default_path=Path(__file__).resolve().parents[2]/"ml"/"models"/"price_forecaster.joblib"
+    artifact_path=Path(os.getenv("FARMHUB_ML_MODEL_PATH",str(default_path)))
     try: predictor=PriceInference(artifact_path)
     except ModelUnavailable as exc: raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=str(exc)) from exc
     prediction=predictor.predict(history,request.crop,request.location,request.market,target_dt)
