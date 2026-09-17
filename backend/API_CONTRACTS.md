@@ -208,7 +208,9 @@ ReDoc: `http://localhost:8000/redoc`
 
 ---
 
-## 4. Price Forecast Contract (ML Team Contract)
+## 4. Price Forecast Contract (Data/ML Team Contract)
+
+> **Note for Multi-Agent Collaboration**: The endpoint structure and payload schema define the fixed contract. The current backend implementation is a **temporary, non-ML / development-only heuristic placeholder** to enable client integration testing. The Data/ML agent will replace this internal forecasting implementation once real data and backtesting are available.
 
 ### 4.1 Price Forecast
 - **Endpoint**: `POST /forecast/price` (also available at `POST /api/forecast/price`)
@@ -230,9 +232,10 @@ ReDoc: `http://localhost:8000/redoc`
     "unit": "INR/quintal",
     "forecast_date": "2026-09-17",
     "target_date": "2026-11-20",
-    "model_version": "v1.2.0-bihar-seasonal-arima-prophet",
+    "model_version": "v0.1.0-dev-heuristic-placeholder",
     "confidence": "MODERATE",
     "limitations": [
+      "Development placeholder: This forecast is generated using seasonal baseline heuristics for API integration testing and is NOT an ML-trained prediction. The Data/ML team will replace this with validated models.",
       "Forecast reflects typical historical seasonal arrival curve in Bihar Mandis (target month: November).",
       "Assumes absence of extreme unseasonal rainfall or cyclone events during harvest/drying window.",
       "Horizon exceeds 60 days: wider band accounts for potential changes in inter-state freight and trade policy."

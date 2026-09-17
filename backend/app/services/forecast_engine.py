@@ -1,7 +1,12 @@
 """
 Forecast Engine for FarmHub Bihar V1 Launch.
-Provides price forecasting with seasonal arrival cycles, confidence scoring,
-and transparent agro-climatic limitations.
+
+NOTE FOR MULTI-AGENT ARCHITECTURE:
+This module is a temporary heuristic baseline / development placeholder.
+It is explicitly non-ML / development-only.
+Its purpose is solely to establish and verify the typed API contract (POST /forecast/price).
+The Data/ML agent will replace this internal forecasting implementation once real data
+and backtesting are available.
 """
 from datetime import datetime, date
 from typing import List, Dict, Any, Optional
@@ -117,6 +122,7 @@ def generate_price_forecast(request: ForecastRequest) -> ForecastResponse:
 
     # Contextual agro-climatic and market limitations
     limitations: List[str] = [
+        "Development placeholder: This forecast is generated using seasonal baseline heuristics for API integration testing and is NOT an ML-trained prediction. The Data/ML team will replace this with validated models.",
         f"Forecast reflects typical historical seasonal arrival curve in Bihar Mandis (target month: {target_dt.strftime('%B')}).",
         "Assumes absence of extreme unseasonal rainfall or cyclone events during harvest/drying window.",
     ]
@@ -135,7 +141,7 @@ def generate_price_forecast(request: ForecastRequest) -> ForecastResponse:
         unit="INR/quintal",
         forecast_date=today.isoformat(),
         target_date=target_dt.isoformat(),
-        model_version="v1.2.0-bihar-seasonal-arima-prophet",
+        model_version="v0.1.0-dev-heuristic-placeholder",
         confidence=confidence,
         limitations=limitations
     )

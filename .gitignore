@@ -29,3 +29,15 @@ dist-ssr
 /playwright/.cache/
 .last-run.json
 .dyad/
+
+# Python & Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+farmhub.db*
+.pytest_cache/
+backend/.env
