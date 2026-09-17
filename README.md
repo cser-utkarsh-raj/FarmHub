@@ -1,49 +1,182 @@
 # FarmHub
 
-A production-oriented agricultural decision-support platform presented by `.dot`.
+> Agricultural decision-support platform for Bihar, presented by `.dot`.
 
-## Features
+FarmHub is being built as a practical agricultural intelligence platform rather than a demo-only application. The first launch target is Bihar, with the architecture designed to support expansion later.
 
-- Role selection (Farmer, Distributor, Buyer)
-- Farmer onboarding with personal, land, and preference details
-- Crop selection with search and category filtering
-- Crop plan summary with planting/harvest dates and land area
-- Price intelligence with current price, historical trends, and forecasts
-- Profitability analysis with scenarios and cost breakdown
-- Market comparison showing nearby markets with prices, distances, and net realization
-- Buyer/distributor discovery with verification status and contact options
-- Dashboard hub for workflow navigation
+## What FarmHub is for
 
-## Design
+FarmHub brings the main decisions a farmer faces around a crop into one workflow:
 
-- Earthy and natural theme inspired by agriculture
-- Primary color: #66BB6A (green)
-- Mobile-first responsive design
-- Accessible components with proper contrast and semantic HTML
-- Built with React, TypeScript, and Tailwind CSS
-- Uses shadcn/ui components
+- **Crop planning** — crop selection, sowing/harvest timing and land-unit handling.
+- **Market intelligence** — current and historical mandi prices.
+- **Price forecasting** — future price estimates for a planned harvest date, with uncertainty and limitations shown to the user.
+- **Profitability** — production cost, expected yield, selling price, revenue, net profit, margin and ROI scenarios.
+- **Market comparison** — compare markets using price plus estimated logistics/fees rather than headline price alone.
+- **Buyer/distributor discovery** — find relevant local commercial contacts and submit supply inquiries.
+- **Weather intelligence** — district weather and practical field/spray advisories.
 
-## Getting Started
+## Repository architecture
 
-1. Install dependencies: `npm install`
-2. Start development server: `npm run dev`
-3. Build for production: `npm run build`
+The repository has a strict separation between application layers:
 
-## API Contracts (for backend integration)
+```text
+FarmHub/
+├── frontend/                 # React + TypeScript web application
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── ...
+│
+├── backend/                  # FastAPI + database + business logic
+│   ├── app/
+│   ├── tests/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── API_CONTRACTS.md
+│
+├── AI_RULES.md
+├── README.md
+└── project-level configuration/documentation
+```
 
-To work with real data, the following endpoints are needed:
+**Important:** frontend code belongs in `frontend/`. Backend/API code belongs in `backend/`. Agents must not create a second application at the repository root or overwrite another agent's area.
 
-- `GET /crops` - List of crops with categories and varieties
-- `POST /onboarding/farmer` - Submit farmer profile data
-- `GET /price-intelligence/:cropId` - Current price, historical data, forecast
-- `GET /profitability/:cropId` - Cost breakdown and scenario analysis
-- `GET /market-comparison/:cropId` - Nearby markets with pricing and logistics
-- `GET /buyer-discovery/:cropId` - Nearby buyers with verification status
-- `GET /dashboard/:farmerId` - User-specific dashboard data
+## Frontend
 
-## Notes
+The frontend is a Vite application using:
 
-- All pages currently use mock data for demonstration
-- Distributor and Buyer onboarding are placeholders (role-specific forms needed)
-- Authentication is assumed to be handled separately
-- State management would be implemented with React Query or similar in production
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Responsive, mobile-first UI
+
+Current product surfaces include role selection, farmer onboarding, crop selection/planning, price intelligence, profitability, market comparison, buyer discovery and dashboard navigation.
+
+The frontend is being progressively connected to the real backend; existing UI mock data should not be mistaken for production market data.
+
+### Run frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Backend
+
+The backend provides:
+
+- JWT authentication and role-based access
+- Farmer, distributor and buyer profiles
+- Bihar land-unit conversion support
+- Crop catalogue and agronomic/economic baselines
+- Market price ingestion and querying
+- Price forecast API contract
+- Profitability/scenario calculations
+- Distance-adjusted market comparison
+- Buyer directory and inquiries
+- Weather integration and advisories
+- Automated backend tests
+
+### Run backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Local API:
+
+- `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Backend API surface
+
+The authoritative integration contract is [`backend/API_CONTRACTS.md`](backend/API_CONTRACTS.md).
+
+Key endpoints include:
+
+| Area | Endpoint |
+|---|---|
+| Register | `POST /api/auth/register` |
+| Login | `POST /api/auth/login` |
+| Current profile | `GET /api/auth/me` |
+| Crops | `GET /api/crops` |
+| Economics | `POST /api/economics/calculate` |
+| Current prices | `GET /api/market/prices/current` |
+| Price history | `GET /api/market/prices/history` |
+| Market comparison | `POST /api/market/compare` |
+| Price forecast | `POST /api/forecast/price` |
+| Buyers | `GET /api/buyers` |
+| Buyer inquiry | `POST /api/buyers/{buyer_user_id}/inquire` |
+| Inquiries | `GET /api/inquiries` |
+| Weather | `GET /api/weather/{district}` |
+
+Frontend integrations should follow the backend contract instead of inventing parallel endpoint names.
+
+## Data and ML
+
+FarmHub's long-term intelligence layer is intended to use real historical market observations and reproducible forecasting/backtesting pipelines.
+
+A model is only considered production intelligence when its:
+
+1. data source is traceable,
+2. training data is reproducible,
+3. features avoid future-data leakage,
+4. time-series validation/backtesting is performed,
+5. error metrics are reported, and
+6. uncertainty/prediction intervals are honestly represented.
+
+Heuristic/demo forecasts must not be presented as trained ML models.
+
+## Privacy and verification
+
+FarmHub should not store raw Aadhaar numbers. Verification is represented through verification status/appropriate external verification mechanisms rather than retaining unnecessary identity documents.
+
+Secrets, passwords, JWT keys and credentials must remain outside source control.
+
+## Agent development rules
+
+FarmHub is developed by multiple agents. The repository is treated as a shared codebase.
+
+### Ownership
+
+- **Frontend agent:** `frontend/`
+- **Backend agent:** `backend/`
+- **Integration:** repository-level coordination and final merges
+
+### Git workflow
+
+Agents must **not commit directly to `main`**.
+
+Use task branches such as:
+
+```text
+agy/<task-name>
+dyad/<task-name>
+```
+
+Then open a PR into `main`.
+
+Before changing anything, an agent must inspect the current repository and work from the latest state. It must not initialize a new repository, create unrelated Git history, force-push, reset `main`, or replace another agent's work.
+
+Every completed task should report:
+
+- branch name,
+- commit SHA,
+- files changed,
+- tests/build checks performed,
+- API contracts changed (if any), and
+- anything intentionally left untouched.
+
+## Status
+
+FarmHub is under active development. The architecture and backend foundation are in place; frontend-to-backend integration and real market/forecast intelligence are ongoing.
+
+---
+
+**FarmHub · presented by `.dot`**
