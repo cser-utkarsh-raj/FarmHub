@@ -29,3 +29,12 @@ dist-ssr
 /playwright/.cache/
 .last-run.json
 .dyad/
+
+# FarmHub ML secrets, datasets and generated artifacts
+backend/.env
+backend/ml/data/raw/
+backend/ml/data/processed/
+backend/ml/models/
+backend/ml/reports/
+backend/ml/*.joblib
+backend/ml/*.pkl

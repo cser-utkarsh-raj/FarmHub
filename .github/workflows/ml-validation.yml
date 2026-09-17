@@ -1,0 +1,37 @@
+name: FarmHub ML validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      commodity:
+        description: "Commodity to fetch for this training run"
+        required: true
+        default: "Potato"
+
+jobs:
+  ml-validation:
+    runs-on: ubuntu-latest
+    env:
+      DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend and ML dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Fetch Bihar mandi data
+        run: python backend/ml/scripts/data_ingestion.py --commodity "${{ inputs.commodity }}"
+      - name: Run ML tests
+        run: python -m pytest backend/ml/tests -q
+      - name: Train model
+        run: python backend/ml/scripts/train.py
+      - name: Run chronological backtest
+        run: python backend/ml/scripts/backtest.py
+      - name: Upload ML outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmhub-ml-${{ inputs.commodity }}
+          path: |
+            backend/ml/reports/
+            backend/ml/models/
