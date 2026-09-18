@@ -11,7 +11,7 @@ from backend.app.schemas.buyers import (
     InquiryStatusUpdate,
     InquiryResponse
 )
-from backend.app.api.auth import get_current_user
+from backend.app.api.auth import get_current_user, require_role
 
 router = APIRouter(tags=["Buyer Directory & Farmer Inquiries"])
 
@@ -66,12 +66,18 @@ def list_buyers(
 def submit_crop_inquiry(
     buyer_user_id: int,
     payload: InquiryCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require_role(UserRole.FARMER)),
+    db: Session = Depends(get_db),
 ):
     """
     Farmer sends a crop supply inquiry to a buyer.
     """
+    if payload.buyer_id != buyer_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="buyer_id in the request body must match the buyer in the URL path.",
+        )
+
     # Verify buyer exists
     buyer = db.query(User).filter(User.id == buyer_user_id).first()
     if not buyer or buyer.role not in (UserRole.BUYER, UserRole.DISTRIBUTOR):
