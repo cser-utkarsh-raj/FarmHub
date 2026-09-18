@@ -30,6 +30,17 @@ dist-ssr
 .last-run.json
 .dyad/
 
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+
 # FarmHub ML secrets, datasets and generated artifacts
 backend/.env
 backend/ml/data/raw/

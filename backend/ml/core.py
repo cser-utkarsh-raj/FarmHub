@@ -17,7 +17,7 @@ from sklearn.preprocessing import OrdinalEncoder
 RAW_COLUMNS = ["state", "district", "market", "commodity", "variety", "grade", "date", "min_price", "max_price", "modal_price"]
 GROUP_COLUMNS = ["state", "district", "market", "commodity", "variety"]
 HORIZONS = (7, 30, 90)
-ALIASES = {"state":["state","State"],"district":["district","District"],"market":["market","Market","market_name","Market Name"],"commodity":["commodity","Commodity"],"variety":["variety","Variety"],"grade":["grade","Grade"],"date":["date","Date","arrival_date","Arrival_Date","Arrival Date"],"min_price":["min_price","Min_Price","Min Price"],"max_price":["max_price","Max_Price","Max Price"],"modal_price":["modal_price","Modal_Price","Modal Price"]}
+ALIASES = {"state":["state","State"],"district":["district","District"],"market":["market","Market","market_name","Market Name"],"commodity":["commodity","Commodity"],"variety":["variety","Variety"],"grade":["grade","Grade"],"date":["date","Date","arrival_date","Arrival_Date","Arrival Date","record_date","Record_Date","record date"],"min_price":["min_price","Min_Price","Min Price"],"max_price":["max_price","Max_Price","Max Price"],"modal_price":["modal_price","Modal_Price","Modal Price"]}
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame(index=df.index)
@@ -36,7 +36,7 @@ def clean_market_data(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].fillna("").astype(str).str.strip().str.replace(r"\s+", " ", regex=True)
     for col in ["min_price","max_price","modal_price"]:
         df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "", regex=False).str.extract(r"([-+]?\d+(?:\.\d+)?)")[0], errors="coerce")
-    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.normalize()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce", format="mixed").dt.normalize()
     df = df.dropna(subset=["date","modal_price"])
     df = df[df["modal_price"] > 0]
     df = df[df["min_price"].isna() | (df["min_price"] >= 0)]

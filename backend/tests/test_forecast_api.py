@@ -18,7 +18,8 @@ def test_forecast_service_unavailable_insufficient_history():
     assert response.status_code == 503
     assert "Not enough verified Bihar mandi history" in response.json()["detail"]
 
-def test_forecast_service_unavailable_without_model():
+def test_forecast_service_unavailable_without_model(monkeypatch):
+    monkeypatch.setenv("FARMHUB_ML_MODEL_PATH", "backend/ml/models/nonexistent_model.joblib")
     target_date = (date.today() + timedelta(days=20)).isoformat()
     payload = {
         "crop": "Maize",
@@ -29,6 +30,22 @@ def test_forecast_service_unavailable_without_model():
     response = client.post("/forecast/price", json=payload)
     assert response.status_code == 503
     assert "No trained FarmHub price model is installed" in response.json()["detail"]
+
+def test_forecast_with_real_trained_model():
+    target_date = (date.today() + timedelta(days=30)).isoformat()
+    payload = {
+        "crop": "Maize",
+        "location": "Purnia",
+        "market": "Gulabbagh (Purnia)",
+        "harvest_date": target_date
+    }
+    response = client.post("/forecast/price", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["central_estimate"] > 0
+    assert data["lower_bound"] <= data["central_estimate"] <= data["upper_bound"]
+    assert data["model_version"] == "farmhub-global-hgb-v1"
+    assert data["confidence"] in ["HIGH", "MODERATE", "LOW"]
 
 def test_forecast_validation_errors():
     today = date.today()

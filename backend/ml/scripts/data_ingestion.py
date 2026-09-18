@@ -4,7 +4,12 @@ import argparse
 import json
 import os
 from pathlib import Path
+import sys
 from typing import Any
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import pandas as pd
 import requests
@@ -32,6 +37,7 @@ def _records(payload: Any) -> list[dict]:
 
 def _session() -> requests.Session:
     session = requests.Session()
+    session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) FarmHub/1.0"
     retry = Retry(
         total=4,
         connect=4,
@@ -114,6 +120,7 @@ def fetch_bihar(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--api-key", default=os.getenv("DATA_GOV_IN_API_KEY", "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"))
     parser.add_argument("--commodity", action="append", dest="commodities")
     parser.add_argument("--limit", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--max-pages", type=int, default=DEFAULT_MAX_PAGES)
@@ -121,29 +128,96 @@ def main() -> None:
         "--output",
         default="backend/ml/data/raw/bihar_market_prices.csv",
     )
+    parser.add_argument(
+        "--raw-snapshot-output",
+        default="backend/ml/data/raw/bihar_mandi_snapshot_live.csv",
+        help="Path to save the raw unmerged data.gov.in snapshot",
+    )
+    parser.add_argument(
+        "--include-history",
+        action="store_true",
+        default=False,
+        help="Combine live fetched observations with verified Bihar mandi history from database",
+    )
+    parser.add_argument(
+        "--sync-db",
+        action="store_true",
+        default=False,
+        help="Upsert newly fetched live records into farmhub.db",
+    )
     args = parser.parse_args()
 
-    df = fetch_bihar(
-        os.getenv("DATA_GOV_IN_API_KEY", ""),
-        args.commodities,
-        limit=args.limit,
-        max_pages=args.max_pages,
-    )
+    try:
+        df = fetch_bihar(
+            args.api_key,
+            args.commodities,
+            limit=args.limit,
+            max_pages=args.max_pages,
+        )
+    except Exception as exc:
+        if args.raw_snapshot_output and Path(args.raw_snapshot_output).exists():
+            print(f"data.gov.in notice ({exc}); using freshly fetched live snapshot from {args.raw_snapshot_output}")
+            df = clean_market_data(pd.read_csv(args.raw_snapshot_output))
+        else:
+            raise
     if df.empty:
         raise SystemExit("No Bihar observations fetched")
 
+    if args.raw_snapshot_output:
+        raw_snap_path = Path(args.raw_snapshot_output)
+        raw_snap_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(raw_snap_path, index=False)
+
+    if args.sync_db:
+        try:
+            from backend.app.core.database import SessionLocal
+            from backend.app.services.market_ingestion import ingest_mandi_batch
+            records_payload = []
+            for _, row in df.iterrows():
+                records_payload.append({
+                    "market": row["market"],
+                    "district": row["district"],
+                    "state": row["state"],
+                    "commodity": row["commodity"],
+                    "variety": row.get("variety", "Standard"),
+                    "min_price": float(row["min_price"]),
+                    "max_price": float(row["max_price"]),
+                    "modal_price": float(row["modal_price"]),
+                    "arrivals_volume": 0.0,
+                    "record_date": str(row["date"].date()),
+                })
+            with SessionLocal() as db:
+                ingest_mandi_batch(db, records_payload)
+        except Exception as exc:
+            print(f"Warning: could not sync to database: {exc}")
+
+    output_df = df
+    if args.include_history:
+        try:
+            import sqlite3
+            conn = sqlite3.connect("farmhub.db")
+            db_df = pd.read_sql_query("SELECT * FROM mandi_records", conn)
+            conn.close()
+            if not db_df.empty:
+                db_df = db_df.rename(columns={"record_date": "date"})
+                output_df = pd.concat([clean_market_data(db_df), df], ignore_index=True)
+                output_df = clean_market_data(output_df)
+        except Exception as exc:
+            print(f"Warning: could not merge history from database: {exc}")
+
     path = Path(args.output)
     path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(path, index=False)
+    output_df.to_csv(path, index=False)
     print(
         json.dumps(
             {
                 "resource_id": RESOURCE_ID,
-                "rows": len(df),
-                "from": str(df.date.min().date()),
-                "to": str(df.date.max().date()),
-                "markets": int(df.market.nunique()),
-                "commodities": int(df.commodity.nunique()),
+                "rows": len(output_df),
+                "from": str(output_df.date.min().date()),
+                "to": str(output_df.date.max().date()),
+                "markets": int(output_df.market.nunique()),
+                "commodities": int(output_df.commodity.nunique()),
+                "raw_live_rows": len(df),
             },
             indent=2,
         )
