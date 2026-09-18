@@ -1,5 +1,8 @@
 import os
+import secrets
+import warnings
 from typing import List
+
 from pydantic import BaseModel
 
 
@@ -41,6 +44,19 @@ class Settings(BaseModel):
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    def model_post_init(self, __context, /) -> None:
+        if not self.SECRET_KEY:
+            if self.ENVIRONMENT.lower() == "production":
+                raise RuntimeError(
+                    "SECRET_KEY is not set. Refusing to start in production without a token signing key."
+                )
+            self.SECRET_KEY = secrets.token_urlsafe(32)
+            warnings.warn(
+                "SECRET_KEY is not set; using a random per-process development key. "
+                "Set SECRET_KEY in the environment to keep sessions across restarts.",
+                stacklevel=2,
+            )
 
 
 settings = Settings()
