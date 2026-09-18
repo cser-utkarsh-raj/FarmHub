@@ -5,6 +5,7 @@ from backend.app.seed.seed_data import seed_database
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
+    settings.RATE_LIMIT_PER_MINUTE = 10_000
     settings.MANDI_INGESTION_KEY = "test-mandi-ingestion-key"
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

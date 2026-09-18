@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.core.database import engine, Base, SessionLocal
 from backend.app.core.logging import logger
+from backend.app.core.ratelimit import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from backend.app.api import api_router
 from backend.app.api.forecast import router as direct_forecast_router
 from backend.app.seed.seed_data import seed_database
@@ -28,13 +31,15 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Production-oriented Agricultural Decision-Support Platform presented by .dot. Scope: Bihar, India.",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
-# CORS Middleware
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
