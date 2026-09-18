@@ -1,7 +1,7 @@
 from datetime import date, timedelta
-from typing import List, Optional, Dict, Any
+from typing import Annotated, List, Optional, Dict, Any
 import secrets
-from fastapi import APIRouter, Depends, Query, HTTPException, status, Header
+from fastapi import APIRouter, Body, Depends, Query, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.app.core.database import get_db
@@ -156,7 +156,7 @@ def compare_nearby_markets(payload: MarketComparisonRequest, db: Session = Depen
 
 @router.post("/ingest")
 def ingest_external_data(
-    records: List[Dict[str, Any]],
+    records: Annotated[List[Dict[str, Any]], Body(max_length=500)],
     x_mandi_ingestion_key: Optional[str] = Header(default=None, alias="X-Mandi-Ingestion-Key"),
     db: Session = Depends(get_db),
 ):
