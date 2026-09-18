@@ -32,7 +32,7 @@ export default function PriceIntelligence() {
     enabled: Boolean(crop && district),
   });
 
-  const markets = pricesQuery.data ?? [];
+  const markets = useMemo(() => pricesQuery.data ?? [], [pricesQuery.data]);
   useEffect(() => {
     if (markets.length && !markets.some((item) => item.market === market)) {
       setMarket(markets[0].market);

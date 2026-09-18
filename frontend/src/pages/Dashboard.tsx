@@ -1,9 +1,23 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { farmHubApi } from "@/lib/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const token = localStorage.getItem("farmhub_token");
+  const meQuery = useQuery({
+    queryKey: ["me"],
+    queryFn: () => farmHubApi.getMe(),
+    enabled: Boolean(token),
+  });
+
+  const handleSignOut = () => {
+    localStorage.removeItem("farmhub_token");
+    localStorage.removeItem("farmer_profile");
+    navigate("/");
+  };
 
   const steps = [
     { label: "Crop Selection", description: "Choose a crop for your plan", path: "/crop-selection" },
@@ -19,12 +33,25 @@ export default function Dashboard() {
       <div className="max-w-2xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">FarmHub</h1>
-            <p className="text-muted-foreground">Your farm decisions, simplified</p>
+            <h1 className="text-2xl font-bold text-foreground">
+              {meQuery.data ? `Namaste, ${meQuery.data.full_name}` : "FarmHub"}
+            </h1>
+            <p className="text-muted-foreground">
+              {meQuery.data?.farmer_profile
+                ? `${meQuery.data.farmer_profile.district}, Bihar · ${meQuery.data.farmer_profile.land_area} ${meQuery.data.farmer_profile.local_land_unit}`
+                : "Your farm decisions, simplified"}
+            </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/")}>
-            Change Role
-          </Button>
+          <div className="flex gap-2">
+            {token && (
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => navigate("/")}>
+              Change Role
+            </Button>
+          </div>
         </header>
 
         <Card>
