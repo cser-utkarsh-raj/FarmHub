@@ -1,6 +1,9 @@
 from __future__ import annotations
-import argparse, json
+import argparse, json, sys
 from pathlib import Path
+ROOT_DIR = Path(__file__).resolve().parents[3]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 import numpy as np
 import pandas as pd
 from backend.ml.core import Artifact, FEATURES, HORIZONS, build_supervised, clean_market_data, make_baseline, make_model, metrics
