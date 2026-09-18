@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,11 @@ import { farmHubApi, formatINR } from "@/lib/api";
 export default function MarketComparison() {
   const navigate = useNavigate();
   const [crop, setCrop] = useState(localStorage.getItem("farmhub_selected_crop") || "Maize");
-  const [district, setDistrict] = useState(localStorage.getItem("farmhub_district") || "");
+  const [district, setDistrict] = useState(localStorage.getItem("farmhub_district") || "Purnia");
   const [quantity, setQuantity] = useState("10");
+
+  const cropsQuery = useQuery({ queryKey: ["crops"], queryFn: () => farmHubApi.getCrops() });
+
   const mutation = useMutation({
     mutationFn: () => farmHubApi.compareMarkets({
       farmer_district: district,
@@ -40,7 +43,17 @@ export default function MarketComparison() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-2"><Label>Crop</Label><Input value={crop} onChange={(e) => setCrop(e.target.value)} /></div>
+              <div className="space-y-2">
+                <Label>Crop</Label>
+                <Select value={crop} onValueChange={setCrop}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(cropsQuery.data ?? []).map((item) => (
+                      <SelectItem key={item.id} value={item.name}>{item.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2"><Label>Farmer district</Label><Input value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="e.g. Purnia" /></div>
               <div className="space-y-2"><Label>Quantity (quintals)</Label><Input type="number" min="0.1" step="0.1" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div>
             </div>

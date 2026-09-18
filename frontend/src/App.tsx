@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Onboarding from "./pages/Onboarding";
+import RoleSelection from "./pages/RoleSelection";
+import FarmerOnboarding from "./pages/Onboarding/FarmerOnboarding";
 import CropSelection from "./pages/CropSelection";
 import CropPlan from "./pages/CropPlan";
 import PriceIntelligence from "./pages/PriceIntelligence";
@@ -22,7 +24,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Onboarding />} />
+          <Route path="/" element={<RoleSelection />} />
+          <Route path="/onboarding/*" element={<Onboarding />} />
+          <Route path="/onboarding/farmer" element={<FarmerOnboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/crop-selection" element={<CropSelection />} />
           <Route path="/crop-plan" element={<CropPlan />} />
