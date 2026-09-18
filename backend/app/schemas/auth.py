@@ -7,7 +7,7 @@ from backend.app.models.user import UserRole, VerificationStatus
 class UserCreate(BaseModel):
     phone: str = Field(..., description="Indian 10-digit mobile number")
     full_name: str = Field(..., min_length=2, max_length=100)
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=6, max_length=72)
     role: UserRole = Field(default=UserRole.FARMER)
     email: Optional[str] = None
 
@@ -35,7 +35,17 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     phone: str
-    password: str
+    password: str = Field(..., max_length=72)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v):
+        digits = re.sub(r"\D", "", v)
+        if len(digits) == 10:
+            return digits
+        if len(digits) == 12 and digits.startswith("91"):
+            return digits[2:]
+        raise ValueError("Invalid phone number. Must be a 10-digit mobile number.")
 
 class Token(BaseModel):
     access_token: str
