@@ -93,7 +93,6 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
         is_active=True
     )
     db.add(user)
-    db.flush()
 
     # Create associated profile based on role
     if payload.role == UserRole.FARMER:
@@ -124,6 +123,7 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
         db.add(profile)
 
     try:
+        db.flush()
         db.commit()
     except IntegrityError:
         db.rollback()
