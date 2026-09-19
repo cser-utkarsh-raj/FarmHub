@@ -21,7 +21,9 @@ from backend.ml.core import clean_market_data
 RESOURCE_ID = "9ef84268-d588-465a-a308-a864a43d0070"
 RESOURCE_URL = f"https://api.data.gov.in/resource/{RESOURCE_ID}"
 DEFAULT_PAGE_SIZE = 1000
-DEFAULT_MAX_PAGES = 10000
+DEFAULT_MAX_PAGES = 200
+DEMO_API_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"
+STATE_FILTER_KEYS = ("state.keyword", "state")
 
 
 def _records(payload: Any) -> list[dict]:
@@ -78,21 +80,47 @@ def fetch_bihar(
         offset = 0
         previous_first_key: tuple | None = None
 
+        state_filter_key: str | None = None
+
         for page in range(max_pages):
-            params: dict[str, Any] = {
+            base_params: dict[str, Any] = {
                 "api-key": api_key,
                 "format": "json",
                 "limit": limit,
                 "offset": offset,
-                "filters[state.keyword]": "Bihar",
             }
             if commodity:
-                params["filters[commodity]"] = commodity
+                base_params["filters[commodity]"] = commodity
 
-            response = session.get(RESOURCE_URL, params=params, timeout=30)
-            response.raise_for_status()
-            records = _records(response.json())
+            filter_keys = (state_filter_key,) if state_filter_key else STATE_FILTER_KEYS
+            records: list[dict] = []
+            last_bad_status: int | None = None
+
+            for candidate in filter_keys:
+                params = {**base_params, f"filters[{candidate}]": "Bihar"}
+                response = session.get(RESOURCE_URL, params=params, timeout=30)
+                if response.status_code == 400 and state_filter_key is None:
+                    last_bad_status = response.status_code
+                    continue
+                response.raise_for_status()
+                candidate_records = _records(response.json())
+                if candidate_records:
+                    state_filter_key = candidate
+                    records = candidate_records
+                    break
+
+                # A valid filter can still legitimately return no rows. Only try
+                # the alternate state field when we are probing the first page.
+                if state_filter_key is not None:
+                    records = candidate_records
+                    break
+
             if not records:
+                if page == 0 and state_filter_key is None and last_bad_status:
+                    raise RuntimeError(
+                        "Data.gov.in rejected the Bihar state filter fields used by FarmHub "
+                        f"(HTTP {last_bad_status})."
+                    )
                 break
 
             first_key = tuple(sorted(records[0].items()))
@@ -120,7 +148,7 @@ def fetch_bihar(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--api-key", default=os.getenv("DATA_GOV_IN_API_KEY", "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"))
+    parser.add_argument("--api-key", default=None, help="Optional override; normally use DATA_GOV_IN_API_KEY")
     parser.add_argument("--commodity", action="append", dest="commodities")
     parser.add_argument("--limit", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--max-pages", type=int, default=DEFAULT_MAX_PAGES)
@@ -147,21 +175,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    api_key = args.api_key or os.getenv("DATA_GOV_IN_API_KEY") or DEMO_API_KEY
+
     try:
         df = fetch_bihar(
-            args.api_key,
+            api_key,
             args.commodities,
             limit=args.limit,
             max_pages=args.max_pages,
         )
     except Exception as exc:
-        if args.raw_snapshot_output and Path(args.raw_snapshot_output).exists():
-            print(f"data.gov.in notice ({exc}); using freshly fetched live snapshot from {args.raw_snapshot_output}")
-            df = clean_market_data(pd.read_csv(args.raw_snapshot_output))
-        else:
-            raise
+        raise SystemExit(f"data.gov.in ingestion failed: {exc}") from exc
+
     if df.empty:
-        raise SystemExit("No Bihar observations fetched")
+        scope = ", ".join(args.commodities) if args.commodities else "all commodities"
+        raise SystemExit(
+            "No Bihar observations fetched from data.gov.in "
+            f"for {scope}. The API returned no matching records for the supported "
+            "Bihar state filter variants."
+        )
 
     if args.raw_snapshot_output:
         raw_snap_path = Path(args.raw_snapshot_output)
