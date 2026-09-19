@@ -148,7 +148,7 @@ FarmHub's ML ingestion has the public Data.gov.in sample/demo key as a developme
 - **Render/deployment:** add `DATA_GOV_IN_API_KEY` as a private environment variable on the backend service.
 - **Never:** frontend/Vite env exposed to the browser, README, source code, or committed `.env` files.
 
-The official mandi resource currently exposes state/commodity filters and the sample key is explicitly intended for demonstration; serious data pulls need a personal key. citeturn951075search8turn218014search10
+The official mandi resource currently exposes state/commodity filters and the sample key is explicitly intended for demonstration; serious data pulls need a personal key.
 
 ## Agent development rules
 
