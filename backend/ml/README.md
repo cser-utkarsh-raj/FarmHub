@@ -11,7 +11,7 @@ FarmHub currently uses one `DATA_GOV_IN_API_KEY` with four official resources:
 - Daily district rainfall: `6c05cd1b-ed59-40c2-bc31-e314f39c6971`
 - District/season/crop production: `35be999b-0208-4354-b557-f6ca9a5355de`
 
-Resource IDs are configuration, not credentials. The API credential is never stored in Git.
+Resource IDs are configuration, not credentials. FarmHub may contain only the public Data.gov.in sample/demo credential as a development fallback; the real API credential is supplied through DATA_GOV_IN_API_KEY at runtime.
 
 ## Data foundation
 
@@ -26,6 +26,10 @@ Every fetched file receives a provenance sidecar recording source, resource ID, 
 - The price model only trains from the official mandi resource.
 - Synthetic application seed records are excluded from price inference.
 - 7/30/90-day uncertainty intervals are not represented as calibrated for arbitrary horizons.
+
+## Credential handling
+
+The committed demo credential is only the public sample credential used to exercise the request path. Production/CI runs must provide `DATA_GOV_IN_API_KEY` through the runtime secret store.
 
 ## Local verification
 
