@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
-from backend.app.core.database import engine, Base, SessionLocal
+from backend.app.core.database import engine, Base, SessionLocal, ensure_schema_compatibility
 from backend.app.core.logging import logger
 from backend.app.core.ratelimit import limiter
 from slowapi import _rate_limit_exceeded_handler
@@ -13,11 +13,13 @@ from backend.app.seed.seed_data import seed_database
 
 # Ensure database tables exist immediately on import
 Base.metadata.create_all(bind=engine)
+ensure_schema_compatibility()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing FarmHub database tables and seed data...")
     Base.metadata.create_all(bind=engine)
+    ensure_schema_compatibility()
     db = SessionLocal()
     try:
         seed_database(db)

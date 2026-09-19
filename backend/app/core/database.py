@@ -32,3 +32,35 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def ensure_schema_compatibility():
+    """Apply the small additive schema change needed by synthetic-row isolation.
+
+    Existing rows are conservatively marked synthetic when the column is first
+    introduced because their provenance is unknown. Verified ingestion explicitly
+    writes is_synthetic=False.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "mandi_records" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("mandi_records")}
+    if "is_synthetic" in columns:
+        return
+
+    if engine.dialect.name == "postgresql":
+        ddl = (
+            "ALTER TABLE mandi_records "
+            "ADD COLUMN is_synthetic BOOLEAN NOT NULL DEFAULT TRUE"
+        )
+    else:
+        ddl = (
+            "ALTER TABLE mandi_records "
+            "ADD COLUMN is_synthetic BOOLEAN NOT NULL DEFAULT 1"
+        )
+
+    with engine.begin() as connection:
+        connection.execute(text(ddl))

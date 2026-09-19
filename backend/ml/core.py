@@ -101,6 +101,7 @@ class Artifact:
     trained_until: str
     horizons: list[int]
     metrics: dict
+    provenance: dict | None = None
     def save(self,path:str|Path)->None:
         path=Path(path); path.parent.mkdir(parents=True,exist_ok=True); joblib.dump(self,path)
     @staticmethod

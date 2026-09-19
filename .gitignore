@@ -49,3 +49,5 @@ backend/ml/models/
 backend/ml/reports/
 backend/ml/*.joblib
 backend/ml/*.pkl
+
+backend/ml/data/provenance/

@@ -132,6 +132,7 @@ def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[s
             existing.modal_price = norm.modal_price
             existing.arrivals_volume = norm.arrivals_volume
             existing.unit = norm.unit
+            existing.is_synthetic = False
         else:
             db.add(MandiRecord(
                 market=norm.market,
@@ -145,6 +146,7 @@ def ingest_mandi_batch(db: Session, records_raw: List[Dict[str, Any]]) -> Dict[s
                 arrivals_volume=norm.arrivals_volume,
                 unit=norm.unit,
                 record_date=norm.record_date,
+                is_synthetic=False,
             ))
         ingested_count += 1
 

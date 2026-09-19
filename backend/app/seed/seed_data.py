@@ -194,7 +194,8 @@ def seed_database(db: Session):
                         modal_price=center,
                         arrivals_volume=vol,
                         unit="INR/quintal",
-                        record_date=rec_date
+                        record_date=rec_date,
+                        is_synthetic=True,
                     ))
 
         db.bulk_save_objects(records_to_insert)
