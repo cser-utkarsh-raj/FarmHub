@@ -13,6 +13,7 @@ from backend.app.seed.seed_data import seed_database
 
 # Ensure database tables exist immediately on import
 Base.metadata.create_all(bind=engine)
+ensure_schema_compatibility()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
