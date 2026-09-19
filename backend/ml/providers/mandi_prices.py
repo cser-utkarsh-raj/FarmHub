@@ -17,6 +17,7 @@ VARIETY_SPEC = ProviderSpec(
 )
 
 PRICE_COLUMNS = ["state","district","market","commodity","variety","grade","date","min_price","max_price","modal_price"]
+STATE_FILTER_CANDIDATES = ("state.keyword", "state")
 
 
 def _normalize_price_rows(rows: list[dict]) -> pd.DataFrame:
@@ -36,10 +37,19 @@ def _normalize_price_rows(rows: list[dict]) -> pd.DataFrame:
 def fetch_mandi_prices(api_key: str, commodities: list[str] | None = None, *, limit: int = 1000, max_pages: int = 10000) -> pd.DataFrame:
     rows: list[dict] = []
     for commodity in commodities or [None]:
-        rows.extend(fetch_paginated(
-            MANDI_SPEC, api_key, limit=limit, max_pages=max_pages,
-            filters={"commodity": commodity} if commodity else None,
-        ))
+        commodity_filter = {"commodity": commodity} if commodity else None
+        for state_field in STATE_FILTER_CANDIDATES:
+            spec = ProviderSpec(
+                resource_id=MANDI_SPEC.resource_id,
+                name=MANDI_SPEC.name,
+                default_filters={state_field: "Bihar"},
+            )
+            candidate = fetch_paginated(
+                spec, api_key, limit=limit, max_pages=max_pages, filters=commodity_filter
+            )
+            if candidate:
+                rows.extend(candidate)
+                break
     return _normalize_price_rows(rows)
 
 
