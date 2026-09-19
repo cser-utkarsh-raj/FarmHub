@@ -1,4 +1,4 @@
-from pathlib import Path
+from hashlib import sha256
 
-class ProvenanceError(RuntimeError):
-    pass
+def digest_bytes(data: bytes) -> str:
+    return sha256(data).hexdigest()
