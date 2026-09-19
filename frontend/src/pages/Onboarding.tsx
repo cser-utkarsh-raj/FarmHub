@@ -1,14 +1,15 @@
 import { Routes, Route } from "react-router-dom";
 import RoleSelection from "./RoleSelection";
 import FarmerOnboarding from "./Onboarding/FarmerOnboarding";
+import BusinessOnboarding from "./Onboarding/BusinessOnboarding";
 
 export default function Onboarding() {
   return (
     <Routes>
       <Route path="/" element={<RoleSelection />} />
       <Route path="/farmer" element={<FarmerOnboarding />} />
-      <Route path="/distributor" element={<div>Distributor Onboarding</div>} />
-      <Route path="/buyer" element={<div>Buyer Onboarding</div>} />
+      <Route path="/distributor" element={<BusinessOnboarding role="DISTRIBUTOR" />} />
+      <Route path="/buyer" element={<BusinessOnboarding role="BUYER" />} />
     </Routes>
   );
 }
