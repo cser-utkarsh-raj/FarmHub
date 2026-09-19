@@ -16,6 +16,10 @@ from backend.ml.providers.crop_production import SPEC as PRODUCTION_SPEC, fetch_
 from backend.ml.providers.district_rainfall import SPEC as RAINFALL_SPEC, fetch_district_rainfall
 from backend.ml.providers.mandi_prices import MANDI_SPEC, VARIETY_SPEC, fetch_mandi_prices, fetch_variety_prices
 
+# Public Data.gov.in sample/demo credential for development only.
+# Production and CI should provide DATA_GOV_IN_API_KEY through a secret store.
+DEMO_API_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"
+
 DATASETS = {
     "mandi": {"filename": "bihar_market_prices.csv", "resource_id": MANDI_SPEC.resource_id, "name": MANDI_SPEC.name},
     "variety": {"filename": "bihar_variety_prices.csv", "resource_id": VARIETY_SPEC.resource_id, "name": VARIETY_SPEC.name},
@@ -24,9 +28,7 @@ DATASETS = {
 }
 
 def _api_key(cli_value: str | None) -> str:
-    value = cli_value or os.getenv("DATA_GOV_IN_API_KEY")
-    if not value:
-        raise SystemExit("DATA_GOV_IN_API_KEY is required; refusing to start without a credential")
+    value = cli_value or os.getenv("DATA_GOV_IN_API_KEY") or DEMO_API_KEY
     return value
 
 def _fetch_dataset(name: str, args: argparse.Namespace, api_key: str):
