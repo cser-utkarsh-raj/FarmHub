@@ -1,5 +1,5 @@
 from datetime import datetime, date, timezone
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date, Index
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, Index, Boolean, true
 from backend.app.core.database import Base
 
 class MandiRecord(Base):
@@ -22,6 +22,8 @@ class MandiRecord(Base):
 
     record_date = Column(Date, nullable=False, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    # Unknown/legacy rows default to synthetic until verified ingestion marks them false.
+    is_synthetic = Column(Boolean, default=True, server_default=true(), nullable=False, index=True)
 
     __table_args__ = (
         Index("idx_market_crop_date", "market", "commodity", "record_date"),

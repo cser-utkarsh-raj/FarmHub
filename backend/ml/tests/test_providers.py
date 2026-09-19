@@ -1,0 +1,70 @@
+"""TEST FIXTURES for official Data.gov.in provider behavior."""
+import pytest
+
+from backend.ml.providers.base import ProviderSpec, fetch_paginated
+from backend.ml.providers.mandi_prices import fetch_mandi_prices
+
+
+class FakeResponse:
+    def __init__(self, payload, status_code=200):
+        self.payload = payload
+        self.status_code = status_code
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            import requests
+            raise requests.HTTPError(response=self)
+
+    def json(self):
+        return self.payload
+
+
+class FakeSession:
+    def __init__(self, pages):
+        self.pages = list(pages)
+        self.calls = []
+
+    def get(self, url, params, timeout):
+        self.calls.append(params.copy())
+        return FakeResponse(self.pages.pop(0) if self.pages else {"records": []})
+
+
+def test_pagination_uses_returned_row_count():
+    spec = ProviderSpec("TEST FIXTURE", "TEST FIXTURE", {})
+    session = FakeSession([
+        {"records": [{"id": 1}, {"id": 2}]},
+        {"records": [{"id": 3}]},
+        {"records": []},
+    ])
+    rows = fetch_paginated(spec, "test", limit=1000, session=session)
+    assert len(rows) == 3
+    assert [c["offset"] for c in session.calls] == [0, 2, 3]
+
+
+def test_malformed_payload_fails():
+    spec = ProviderSpec("TEST FIXTURE", "TEST FIXTURE", {})
+    with pytest.raises(ValueError):
+        fetch_paginated(spec, "test", session=FakeSession([{"unexpected": []}]))
+
+
+def test_missing_key_fails_closed():
+    spec = ProviderSpec("TEST FIXTURE", "TEST FIXTURE", {})
+    with pytest.raises(RuntimeError, match="DATA_GOV_IN_API_KEY"):
+        fetch_paginated(spec, "", session=FakeSession([]))
+
+
+def test_mandi_fields_are_normalized(monkeypatch):
+    def fake_fetch(spec, api_key, **kwargs):
+        assert spec.resource_id == "9ef84268-d588-465a-a308-a864a43d0070"
+        return [{
+            "State": "Bihar", "District": "Purnia", "Market": "Gulabbagh",
+            "Commodity": "Maize", "Variety": "Hybrid", "Grade": "FAQ",
+            "Arrival_Date": "2026-09-18", "Min_Price": "2000",
+            "Max_Price": "2200", "Modal_Price": "2100",
+        }]
+
+    monkeypatch.setattr("backend.ml.providers.mandi_prices.fetch_paginated", fake_fetch)
+    df = fetch_mandi_prices("test", ["Maize"])
+    assert df.iloc[0]["district"] == "Purnia"
+    assert df.iloc[0]["date"] == "2026-09-18"
+    assert df.iloc[0]["modal_price"] == "2100"
