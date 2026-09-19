@@ -139,6 +139,17 @@ FarmHub should not store raw Aadhaar numbers. Verification is represented throug
 
 Secrets, passwords, JWT keys, ingestion keys and API credentials must remain outside source control.
 
+### Data.gov.in API key placement
+
+FarmHub's ML ingestion has the public Data.gov.in sample/demo key as a development fallback so a fresh checkout can exercise the request path. It is limited by Data.gov.in and is not suitable for training a production model. The real key belongs only in runtime secrets:
+
+- **Local:** set `DATA_GOV_IN_API_KEY` in the PowerShell/Linux environment (or an untracked `.env` loaded by your local environment).
+- **GitHub Actions:** repository `Settings → Secrets and variables → Actions → New repository secret` named `DATA_GOV_IN_API_KEY`.
+- **Render/deployment:** add `DATA_GOV_IN_API_KEY` as a private environment variable on the backend service.
+- **Never:** frontend/Vite env exposed to the browser, README, source code, or committed `.env` files.
+
+The official mandi resource currently exposes state/commodity filters and the sample key is explicitly intended for demonstration; serious data pulls need a personal key. citeturn951075search8turn218014search10
+
 ## Agent development rules
 
 FarmHub is developed as a shared codebase.
