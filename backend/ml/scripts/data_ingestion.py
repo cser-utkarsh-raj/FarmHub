@@ -52,6 +52,7 @@ def main() -> None:
     parser.add_argument("--output-dir", default="backend/ml/data/raw")
     parser.add_argument("--provenance-dir", default="backend/ml/data/provenance")
     parser.add_argument("--output", default=None)
+    parser.add_argument("--sync-db", action="store_true", help="Also upsert fetched mandi records into the application DB as verified observations")
     args = parser.parse_args()
 
     api_key = _api_key(args.api_key)
@@ -69,6 +70,30 @@ def main() -> None:
         df = _fetch_dataset(name, args, api_key)
         if df.empty:
             raise SystemExit(f"No {name} observations fetched; refusing to write an empty dataset")
+        if args.sync_db and name != "mandi":
+            raise SystemExit("--sync-db is supported only for the mandi dataset")
+
+        if args.sync_db:
+            from backend.app.core.database import SessionLocal
+            from backend.app.services.market_ingestion import ingest_mandi_batch
+            payload = []
+            for row in df.to_dict(orient="records"):
+                payload.append({
+                    "market": row["market"],
+                    "district": row["district"],
+                    "state": row["state"],
+                    "commodity": row["commodity"],
+                    "variety": row.get("variety") or "Standard",
+                    "min_price": float(row["min_price"]),
+                    "max_price": float(row["max_price"]),
+                    "modal_price": float(row["modal_price"]),
+                    "arrivals_volume": 0.0,
+                    "record_date": str(row["date"].date()) if hasattr(row["date"], "date") else str(row["date"]),
+                })
+            with SessionLocal() as db:
+                for start in range(0, len(payload), 500):
+                    ingest_mandi_batch(db, payload[start:start + 500])
+
         output_path = Path(args.output) if args.output else output_dir / spec["filename"]
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path, index=False)
