@@ -56,3 +56,18 @@ def build_provenance(df: pd.DataFrame, data_path: str | Path, *, source: str, re
             return []
         return sorted({str(v).strip() for v in df[column].dropna() if str(v).strip()})
     return Provenance(source, resource_id, datetime.now(timezone.utc).isoformat(), int(len(df)), date_min, date_max, vals("market"), vals("district"), vals("commodity"), digest_bytes(Path(data_path).read_bytes()))
+
+def verify_provenance(data_path: str | Path, provenance_path: str | Path, *, expected_resource_id: str) -> Provenance:
+    data_file = Path(data_path)
+    if not data_file.exists():
+        raise RuntimeError(f"Data file does not exist: {data_file}")
+    provenance = Provenance.load(provenance_path)
+    if provenance.source != "data.gov.in":
+        raise RuntimeError("Training data provenance source is not data.gov.in")
+    if provenance.source_resource_id != expected_resource_id:
+        raise RuntimeError(f"Unexpected Data.gov.in resource: {provenance.source_resource_id}")
+    if digest_bytes(data_file.read_bytes()) != provenance.content_sha256:
+        raise RuntimeError("Training data does not match its provenance digest")
+    if provenance.row_count <= 0:
+        raise RuntimeError("Provenance row count must be positive")
+    return provenance
