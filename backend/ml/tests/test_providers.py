@@ -68,3 +68,27 @@ def test_mandi_fields_are_normalized(monkeypatch):
     assert df.iloc[0]["district"] == "Purnia"
     assert df.iloc[0]["date"] == "2026-09-18"
     assert df.iloc[0]["modal_price"] == "2100"
+
+
+def test_mandi_state_filter_fallback(monkeypatch):
+    calls = []
+
+    def fake_fetch(spec, api_key, **kwargs):
+        calls.append((dict(spec.default_filters), dict(kwargs.get("filters") or {})))
+        if spec.default_filters.get("state") == "Bihar":
+            return [{
+                "State": "Bihar", "District": "Purnia", "Market": "Gulabbagh",
+                "Commodity": "Maize", "Variety": "Hybrid", "Grade": "FAQ",
+                "Arrival_Date": "2026-09-18", "Min_Price": "2000",
+                "Max_Price": "2200", "Modal_Price": "2100",
+            }]
+        return []
+
+    monkeypatch.setattr("backend.ml.providers.mandi_prices.fetch_paginated", fake_fetch)
+    df = fetch_mandi_prices("test", ["Maize"])
+    assert len(calls) == 2
+    assert calls[0][0] == {"state.keyword": "Bihar"}
+    assert calls[1][0] == {"state": "Bihar"}
+    assert calls[0][1] == {"commodity": "Maize"}
+    assert calls[1][1] == {"commodity": "Maize"}
+    assert df.iloc[0]["state"] == "Bihar"
