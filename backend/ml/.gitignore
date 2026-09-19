@@ -1,0 +1,11 @@
+# Never commit real market data, credentials, trained artifacts or reports.
+data/raw/*
+data/processed/*
+models/*
+reports/*
+*.joblib
+*.pkl
+*.pickle
+*.csv
+*.json
+!README.md
