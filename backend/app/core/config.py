@@ -1,12 +1,18 @@
 import os
 import secrets
 import warnings
+from pathlib import Path
 from typing import List
 
-from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[2] / ".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     PROJECT_NAME: str = os.getenv("PROJECT_NAME", "FarmHub API")
     API_V1_STR: str = os.getenv("API_V1_STR", "/api")
@@ -27,6 +33,10 @@ class Settings(BaseModel):
     WEATHER_CACHE_TTL_SECONDS: int = int(os.getenv("WEATHER_CACHE_TTL_SECONDS", "3600"))
 
     DATA_GOV_IN_API_KEY: str = os.getenv("DATA_GOV_IN_API_KEY", "")
+    DATA_GOV_IN_MANDI_RESOURCE_ID: str = os.getenv("DATA_GOV_IN_MANDI_RESOURCE_ID", "9ef84268-d588-465a-a308-a864a43d0070")
+    DATA_GOV_IN_VARIETY_RESOURCE_ID: str = os.getenv("DATA_GOV_IN_VARIETY_RESOURCE_ID", "35985678-0d79-46b4-9ed6-6f13308a1d24")
+    DATA_GOV_IN_RAINFALL_RESOURCE_ID: str = os.getenv("DATA_GOV_IN_RAINFALL_RESOURCE_ID", "6c05cd1b-ed59-40c2-bc31-e314f39c6971")
+    DATA_GOV_IN_PRODUCTION_RESOURCE_ID: str = os.getenv("DATA_GOV_IN_PRODUCTION_RESOURCE_ID", "35be999b-0208-4354-b557-f6ca9a5355de")
     DATA_GOV_IN_RESOURCE_URL: str = os.getenv(
         "DATA_GOV_IN_RESOURCE_URL",
         "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070",

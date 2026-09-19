@@ -120,28 +120,18 @@ Frontend integrations should follow the backend contract instead of inventing pa
 
 ## Data and ML
 
-FarmHub's price intelligence uses the official data.gov.in resource **9ef84268-d588-465a-a308-a864a43d0070**, the Government of India's current daily commodity/mandi price resource generated through AGMARKNET.
+FarmHub currently uses four official Data.gov.in resources:
 
-The ingestion pipeline:
+| Resource | FarmHub purpose |
+|---|---|
+| Mandi daily prices | Market history, comparison and price forecasting |
+| Variety-wise prices | Variety-level market signals |
+| Daily district rainfall | Rainfall history and weather-linked features |
+| District/season/crop production | Historical production and future yield modeling |
 
-1. Fetches Bihar observations with the resource's JSON GET API.
-2. Handles API/key-level page-size limits without skipping records.
-3. Normalizes commodity, market, variety, grade, date and price fields.
-4. Removes invalid prices and duplicate observations.
-5. Builds leakage-safe lag and rolling features per market/crop series.
-6. Trains and backtests the forecasting model chronologically.
-7. Produces held-out residual-based prediction intervals.
+All four use one `DATA_GOV_IN_API_KEY` environment secret. Public resource IDs are stored in the ML provider layer; they are not credentials.
 
-A model is only considered production intelligence when its:
-
-1. data source is traceable,
-2. training data is reproducible,
-3. features avoid future-data leakage,
-4. time-series validation/backtesting is performed,
-5. error metrics are reported, and
-6. uncertainty/prediction intervals are honestly represented.
-
-Heuristic/demo forecasts must not be presented as trained ML models. A trained model artifact is deliberately not committed to Git; it must be generated from verified data and installed through the deployment pipeline.
+The ML price pipeline requires fresh fetched data, provenance metadata, file-digest verification, chronological validation and baseline comparison. Synthetic demo market records are excluded from ML inference.
 
 ## Privacy and verification
 
