@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -35,11 +35,6 @@ export default function Dashboard() {
   const farmer = meQuery.data?.farmer_profile;
   const crop = farmer?.crops?.[0] || localStorage.getItem("farmhub_selected_crop") || "Maize";
   const district = farmer?.district || localStorage.getItem("farmhub_district") || "Purnia";
-
-  const cropsQuery = useQuery({
-    queryKey: ["crops"],
-    queryFn: () => farmHubApi.getCrops(),
-  });
 
   const pricesQuery = useQuery({
     queryKey: ["dashboard-prices", crop, district],
