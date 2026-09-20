@@ -37,3 +37,21 @@ def train(raw_path: str, artifact_path: str, report_path: str, provenance_path: 
     ml_metrics = metrics(test_df.target_price.to_numpy(), pred); ml_metrics["prediction_interval_coverage"] = float(((test_df.target_price>=test_df.lower)&(test_df.target_price<=test_df.upper)).mean()*100); baseline = make_baseline(train_df,test_df); valid=np.isfinite(baseline); baseline_metrics=metrics(test_df.loc[valid,"target_price"].to_numpy(),baseline[valid]) if valid.any() else {}
     report={"model_version":"farmhub-global-hgb-v2","trained_until":str(train_df.target_date.max().date()),"calibration_from":str(calibration_df.target_date.min().date()),"test_from":str(test_df.target_date.min().date()),"train_rows":len(train_df),"calibration_rows":len(calibration_df),"test_rows":len(test_df),"series":int(clean.groupby(["district","market","commodity","variety"]).ngroups),"ml":ml_metrics,"seasonal_naive_last_observation":baseline_metrics,"conformal_q90_by_horizon":intervals,"provenance":provenance.to_dict()}
     Artifact(model=model,feature_columns=FEATURES,trained_until=report["trained_until"],horizons=list(HORIZONS),metrics=report,provenance=provenance.to_dict()).save(artifact_path); Path(report_path).parent.mkdir(parents=True,exist_ok=True); Path(report_path).write_text(__import__("json").dumps(report,indent=2),encoding="utf-8"); return report
+
+
+def main() -> None:
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Train the FarmHub verified Bihar mandi price model.")
+    parser.add_argument("--input", default="backend/ml/data/raw/bihar_market_prices.csv")
+    parser.add_argument("--provenance", default="backend/ml/data/provenance/mandi.json")
+    parser.add_argument("--artifact", default="backend/ml/models/price_forecaster.joblib")
+    parser.add_argument("--report", default="backend/ml/reports/training.json")
+    args = parser.parse_args()
+    report = train(args.input, args.artifact, args.report, args.provenance)
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()
