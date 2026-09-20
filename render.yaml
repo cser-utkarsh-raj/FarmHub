@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: farmhub-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PROJECT_NAME
+        value: FarmHub API
+      - key: API_V1_STR
+        value: /api
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://farmhub-dot.vercel.app
+      - key: DATA_GOV_IN_API_KEY
+        sync: false
+      - key: MANDI_INGESTION_KEY
+        sync: false
+      - key: FARMHUB_ML_MODEL_PATH
+        value: /app/backend/ml/models/price_forecaster.joblib
