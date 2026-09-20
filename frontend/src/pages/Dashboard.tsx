@@ -114,7 +114,11 @@ export default function Dashboard() {
   }
 
   if (meQuery.data.role !== "FARMER") {
-    navigate("/buyer-dashboard", { replace: true });
+    if (meQuery.data.role === "DISTRIBUTOR") {
+      navigate("/distributor-dashboard", { replace: true });
+    } else {
+      navigate("/buyer-dashboard", { replace: true });
+    }
     return null;
   }
 

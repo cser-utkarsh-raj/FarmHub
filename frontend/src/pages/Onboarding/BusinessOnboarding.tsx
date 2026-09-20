@@ -80,7 +80,8 @@ export default function BusinessOnboarding({ role }: Props) {
       });
       localStorage.setItem("farmhub_token", token.access_token);
       localStorage.setItem("farmhub_phone", token.phone);
-      navigate("/buyer-dashboard", { replace: true });
+      const targetDashboard = role === "DISTRIBUTOR" ? "/distributor-dashboard" : "/buyer-dashboard";
+      navigate(targetDashboard, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -105,7 +106,8 @@ export default function BusinessOnboarding({ role }: Props) {
         localStorage.removeItem("farmhub_token");
         throw new Error("This account is registered as " + me.role.toLowerCase() + ", not " + title.toLowerCase() + ".");
       }
-      navigate("/buyer-dashboard", { replace: true });
+      const targetDashboard = role === "DISTRIBUTOR" ? "/distributor-dashboard" : "/buyer-dashboard";
+      navigate(targetDashboard, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed. Please verify your credentials.");
     } finally {

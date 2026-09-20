@@ -13,6 +13,7 @@ from backend.app.core.security import (
 from backend.app.models.user import User, UserRole, VerificationStatus
 from backend.app.models.farmer_profile import FarmerProfile
 from backend.app.models.buyer_profile import BuyerProfile
+from backend.app.core.logging import logger
 from backend.app.schemas.auth import (
     UserCreate,
     UserLogin,
@@ -128,11 +129,15 @@ def register(request: Request, response: Response, payload: UserCreate, db: Sess
         db.commit()
     except IntegrityError:
         db.rollback()
+        logger.warning("Registration conflict: duplicate phone or email attempt.")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this mobile number or email is already registered.",
         )
     db.refresh(user)
+
+    masked_phone = f"******{user.phone[-4:]}" if len(user.phone) >= 4 else "******"
+    logger.info("User registered successfully: id=%s, role=%s, phone=%s", user.id, user.role.value, masked_phone)
 
     token = create_access_token({"sub": str(user.id), "role": user.role.value})
     return Token(
@@ -150,10 +155,15 @@ def register(request: Request, response: Response, payload: UserCreate, db: Sess
 def login(request: Request, response: Response, payload: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.phone == payload.phone).first()
     if not user or not verify_password(payload.password, user.hashed_password) or not user.is_active:
+        masked_phone = f"******{payload.phone[-4:]}" if len(payload.phone) >= 4 else "******"
+        logger.warning("Authentication failed for phone=%s", masked_phone)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid mobile number or password.",
         )
+
+    masked_phone = f"******{user.phone[-4:]}" if len(user.phone) >= 4 else "******"
+    logger.info("User logged in successfully: id=%s, role=%s, phone=%s", user.id, user.role.value, masked_phone)
 
     token = create_access_token({"sub": str(user.id), "role": user.role.value})
     return Token(

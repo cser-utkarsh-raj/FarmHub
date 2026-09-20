@@ -234,3 +234,35 @@ def test_login_rate_limit_returns_429(monkeypatch):
         assert res.status_code == 429
     finally:
         limiter.reset()
+
+
+def test_cors_preflight_for_production_origins():
+    # Test preflight request from production Vercel origins
+    test_origins = [
+        "https://farmhub-dot.vercel.app",
+        "https://shennong-dot.vercel.app",
+        "https://preview-deploy-123.vercel.app",
+        "http://localhost:5173",
+    ]
+    for origin in test_origins:
+        res = client.options(
+            "/api/auth/register",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+        assert res.status_code == 200, f"Preflight failed for {origin}"
+        assert res.headers.get("access-control-allow-origin") == origin, f"Missing allow-origin for {origin}"
+        assert "POST" in res.headers.get("access-control-allow-methods", "")
+
+
+def test_readiness_check_structure():
+    res = client.get("/health/ready")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"
+    assert "ml_model" in data
+

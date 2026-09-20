@@ -13,6 +13,7 @@ import pandas as pd
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from backend.app.core.logging import logger
 from backend.app.models.market_price import MandiRecord
 from backend.ml.inference import ModelUnavailable, PriceInference
 
@@ -48,16 +49,22 @@ def generate_price_forecast(request:ForecastRequest,db:Session)->ForecastRespons
     if target_dt<=today: raise ValueError("harvest_date must be a future date.")
     horizon=(target_dt-today).days
     if horizon>90: raise ValueError("FarmHub ML v1 supports forecast horizons up to 90 days. A longer horizon requires a separately validated model.")
+    logger.info("Generating price forecast: crop=%s, district=%s, market=%s, horizon=%s days", request.crop, request.location, request.market, horizon)
     records=(db.query(MandiRecord).filter(MandiRecord.state.ilike("Bihar")).filter(MandiRecord.district.ilike(request.location)).filter(MandiRecord.market.ilike(request.market)).filter(MandiRecord.commodity.ilike(request.crop)).filter(MandiRecord.is_synthetic.is_(False)).order_by(MandiRecord.record_date.asc()).all())
-    if len(records)<30: raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail="Not enough verified Bihar mandi history is available for this crop/market. The forecast model requires at least 30 observations.")
+    if len(records)<30:
+        logger.warning("Insufficient verified mandi history (%s records) for crop=%s market=%s", len(records), request.crop, request.market)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail="Not enough verified Bihar mandi history is available for this crop/market. The forecast model requires at least 30 observations.")
     history=pd.DataFrame([{"state":r.state,"district":r.district,"market":r.market,"commodity":r.commodity,"variety":r.variety or "UNKNOWN","grade":"UNKNOWN","date":r.record_date,"min_price":r.min_price,"max_price":r.max_price,"modal_price":r.modal_price} for r in records])
     default_path=Path(__file__).resolve().parents[2]/"ml"/"models"/"price_forecaster.joblib"
     artifact_path=Path(os.getenv("FARMHUB_ML_MODEL_PATH",str(default_path)))
     try: predictor=PriceInference(artifact_path)
-    except ModelUnavailable as exc: raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=str(exc)) from exc
+    except ModelUnavailable as exc:
+        logger.warning("Forecast model unavailable: %s", exc)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail=str(exc)) from exc
     prediction=predictor.predict(history,request.crop,request.location,request.market,target_dt)
     limitations=["Prediction is based on historical Bihar mandi observations and is not a guaranteed farm-gate price.",f"Model trained through {prediction['trained_until']} and calibrated using held-out historical residuals.",f"The requested {horizon}-day horizon uses calibration from the nearest trained horizon ({prediction['calibration_horizon']} days).","Weather shocks, policy changes, arrivals, storage constraints and transport disruptions can move prices beyond the historical range."]
     interval_validated = bool(prediction.get("interval_validated_for_requested_horizon", True))
     if not interval_validated:
         limitations.append(f"Uncertainty interval is calibrated for {prediction['calibration_horizon']}-day horizon, not for the requested {horizon}-day horizon.")
+    logger.info("Price forecast generated successfully: central=%.2f [%.2f - %.2f] confidence=%s", prediction["central_estimate"], prediction["lower_bound"], prediction["upper_bound"], prediction.get("model_version"))
     return ForecastResponse(central_estimate=prediction["central_estimate"],lower_bound=prediction["lower_bound"],upper_bound=prediction["upper_bound"],unit="INR/quintal",forecast_date=today.isoformat(),target_date=target_dt.isoformat(),model_version=prediction["model_version"],confidence=_confidence(prediction["central_estimate"],prediction["lower_bound"],prediction["upper_bound"]) if interval_validated else "LOW",limitations=limitations,interval_validated_for_requested_horizon=interval_validated)

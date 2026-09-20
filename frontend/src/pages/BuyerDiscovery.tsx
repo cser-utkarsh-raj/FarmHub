@@ -51,10 +51,13 @@ export default function BuyerDiscovery() {
     },
   });
 
-  if (meQuery.data && meQuery.data.role !== "FARMER") {
-    navigate("/buyer-dashboard", { replace: true });
-    return null;
-  }
+  const isFarmer = !meQuery.data || meQuery.data.role === "FARMER";
+  const homeDashboard =
+    meQuery.data?.role === "DISTRIBUTOR"
+      ? "/distributor-dashboard"
+      : meQuery.data?.role === "BUYER"
+      ? "/buyer-dashboard"
+      : "/dashboard";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -69,9 +72,13 @@ export default function BuyerDiscovery() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <CardTitle>Buyers & commercial partners</CardTitle>
-                <p className="text-muted-foreground text-sm mt-1">Find verified buyers and distributors for your crop and submit direct supply inquiries.</p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {isFarmer
+                    ? "Find verified buyers and distributors for your crop and submit direct supply inquiries."
+                    : "Commercial partner directory of verified buyers and regional distributors in Bihar."}
+                </p>
               </div>
-              <Button variant="outline" onClick={() => navigate(meQuery.data?.role === "FARMER" ? "/dashboard" : "/buyer-dashboard")}>
+              <Button variant="outline" onClick={() => navigate(homeDashboard)}>
                 Back to dashboard
               </Button>
             </div>
@@ -101,9 +108,15 @@ export default function BuyerDiscovery() {
                       <p className="text-sm text-muted-foreground mt-1">{buyer.crops_purchased.join(", ") || "Crop preferences not listed"}</p>
                       <p className="text-sm text-muted-foreground">{buyer.district}, {buyer.state} · approx. {buyer.approx_monthly_quantity_quintals.toLocaleString("en-IN")} qtl/month</p>
                     </div>
-                    <Button onClick={() => { setOpenBuyer(openBuyer === buyer.user_id ? null : buyer.user_id); setSentTo(null); }} variant={openBuyer === buyer.user_id ? "secondary" : "default"}>
-                      <Send className="mr-2 h-4 w-4" /> {openBuyer === buyer.user_id ? "Close" : "Send inquiry"}
-                    </Button>
+                    {isFarmer ? (
+                      <Button onClick={() => { setOpenBuyer(openBuyer === buyer.user_id ? null : buyer.user_id); setSentTo(null); }} variant={openBuyer === buyer.user_id ? "secondary" : "default"}>
+                        <Send className="mr-2 h-4 w-4" /> {openBuyer === buyer.user_id ? "Close" : "Send inquiry"}
+                      </Button>
+                    ) : (
+                      <Badge variant="outline" className="border-sky-300 text-sky-800 bg-sky-50 py-1">
+                        Commercial Peer
+                      </Badge>
+                    )}
                   </div>
 
                   {sentTo === buyer.user_id && <p className="text-sm text-emerald-700 mt-3 flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Inquiry sent successfully. You can track the response from your account.</p>}

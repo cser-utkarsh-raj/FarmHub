@@ -40,9 +40,13 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+from pathlib import Path
+import os
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,13 +58,20 @@ app.include_router(direct_forecast_router)
 # Mount API V1 router under /api
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+def _get_model_status():
+    model_path = Path(os.getenv("FARMHUB_ML_MODEL_PATH", settings.FARMHUB_ML_MODEL_PATH))
+    if model_path.exists():
+        return {"status": "available", "path": str(model_path)}
+    return {"status": "not_installed", "note": "Requires verified training pipeline execution"}
+
 @app.get("/health", tags=["Health & Monitoring"])
 def health_check():
     return {
         "status": "healthy",
         "service": "Shennong Backend",
         "region_scope": "Bihar, India",
-        "presented_by": ".dot"
+        "presented_by": ".dot",
+        "ml_model": _get_model_status()["status"],
     }
 
 @app.get("/health/ready", tags=["Health & Monitoring"])
@@ -75,7 +86,12 @@ def readiness_check():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connectivity check failed.",
         ) from exc
-    return {"status": "ready", "service": "Shennong Backend"}
+    return {
+        "status": "ready",
+        "service": "Shennong Backend",
+        "database": "connected",
+        "ml_model": _get_model_status(),
+    }
 
 
 @app.get("/", tags=["Health & Monitoring"])

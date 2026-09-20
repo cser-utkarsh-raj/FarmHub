@@ -35,19 +35,40 @@ export const ShennongNavbar: React.FC<ShennongNavbarProps> = ({
     { label: "Buyers", path: "/buyer-discovery" },
   ];
 
-  const businessNavItems = [
-    { label: "Inquiries & Inbox", path: "/buyer-dashboard" },
+  const distributorNavItems = [
+    { label: "Distributor Desk", path: "/distributor-dashboard" },
+    { label: "Mandi Prices", path: "/price-intelligence" },
+    { label: "Market Comparison", path: "/market-comparison" },
     { label: "Partner Directory", path: "/buyer-discovery" },
   ];
 
-  const navItems = userRole === "FARMER" ? farmerNavItems : businessNavItems;
+  const buyerNavItems = [
+    { label: "Buyer Desk", path: "/buyer-dashboard" },
+    { label: "Mandi Prices", path: "/price-intelligence" },
+    { label: "Market Comparison", path: "/market-comparison" },
+    { label: "Partner Directory", path: "/buyer-discovery" },
+  ];
+
+  const navItems =
+    userRole === "DISTRIBUTOR"
+      ? distributorNavItems
+      : userRole === "BUYER"
+      ? buyerNavItems
+      : farmerNavItems;
+
+  const homePath =
+    userRole === "DISTRIBUTOR"
+      ? "/distributor-dashboard"
+      : userRole === "BUYER"
+      ? "/buyer-dashboard"
+      : "/dashboard";
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border bg-white/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Left: Brand Identity */}
         <div className="flex items-center gap-4">
-          <Link to={userRole === "FARMER" ? "/dashboard" : "/buyer-dashboard"} className="flex items-center gap-2.5">
+          <Link to={homePath} className="flex items-center gap-2.5">
             {/* Geometric Field Emblem */}
             <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center p-1">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="24" height="24" fill="none">
