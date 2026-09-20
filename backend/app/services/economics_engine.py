@@ -53,6 +53,7 @@ class EconomicsResult(BaseModel):
     scenarios: Dict[str, ScenarioResult]
     cost_breakdown: Dict[str, CostItem]
     total_estimated_production_cost_inr: float
+    break_even_price_inr_quintal: float
     assumptions_summary: Dict[str, Any]
 
 def calculate_crop_economics(data: EconomicsInput) -> EconomicsResult:
@@ -148,6 +149,11 @@ def calculate_crop_economics(data: EconomicsInput) -> EconomicsResult:
         "expected": build_scenario("expected", yield_mult=1.00, price_mult=1.00, cost_buffer_mult=1.00),
         "high-price": build_scenario("high-price", yield_mult=1.10, price_mult=1.12, cost_buffer_mult=1.00),
     }
+
+    expected = scenarios["expected"]
+    fee_fraction = max(0.0, min(mandi_fee_pct / 100.0, 0.95))
+    expected_fixed_cost = expected.total_cost_inr - (expected.gross_revenue_inr * fee_fraction)
+    break_even_price = expected_fixed_cost / max(expected.effective_saleable_quintals * (1.0 - fee_fraction), 0.01)
 
     return EconomicsResult(
         crop=crop_info["name"],
