@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, CheckCircle2, Clock3, LogOut, PackageSearch, Store, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,7 +21,7 @@ export default function BuyerDashboard() {
   const [buyers, setBuyers] = useState<Awaited<ReturnType<typeof farmHubApi.getBuyers>>>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setError("");
     try {
       const user = await farmHubApi.getMe();
@@ -47,11 +47,11 @@ export default function BuyerDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   const updateStatus = async (inquiry: Inquiry, status: string) => {
     try {
