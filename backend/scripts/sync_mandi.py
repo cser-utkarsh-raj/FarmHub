@@ -52,6 +52,8 @@ def main() -> None:
     data_key = required_env("DATA_GOV_IN_API_KEY")
     ingestion_key = required_env("MANDI_INGESTION_KEY")
     api_url = required_env("FARMHUB_API_URL")
+    if not api_url.startswith(("http://", "https://")):
+        api_url = "http://" + api_url
 
     commodities = [
         item.strip()
