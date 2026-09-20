@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from backend.app.schemas.weather import WeatherResponse
-from backend.app.services.weather_service import fetch_weather_for_district
+from backend.app.services.weather_service import WeatherUnavailable, fetch_weather_for_district
 
 router = APIRouter(prefix="/weather", tags=["Agricultural Weather & Spray Advisory"])
 
@@ -15,5 +15,7 @@ async def get_district_weather(
     Returns agricultural weather signals for the district: temperature, rain risk,
     wind speed, and spray advisory. Uses Open-Meteo with server-side database caching.
     """
-    data = await fetch_weather_for_district(db, district)
-    return data
+    try:
+        return await fetch_weather_for_district(db, district)
+    except WeatherUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
