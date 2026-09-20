@@ -1,0 +1,48 @@
+name: Verified ML retraining
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * 0"
+  push:
+    branches: [main]
+    paths:
+      - "backend/ml/**"
+      - ".github/workflows/ml-retrain.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    env:
+      DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+      CI: "true"
+      ENVIRONMENT: "production"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install ML dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Fetch fresh official mandi data
+        run: |
+          test -n "$DATA_GOV_IN_API_KEY"
+          python backend/ml/scripts/data_ingestion.py             --dataset mandi             --limit 500             --max-pages 50
+      - name: Train with provenance checks
+        run: python backend/ml/scripts/train.py
+      - name: Chronological backtest
+        run: python backend/ml/scripts/backtest.py
+      - name: Publish validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: farmhub-ml-validation
+          path: |
+            backend/ml/models/price_forecaster.joblib
+            backend/ml/reports/training.json
+            backend/ml/reports/backtest.json
+            backend/ml/data/provenance/mandi.json
