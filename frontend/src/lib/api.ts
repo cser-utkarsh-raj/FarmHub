@@ -108,6 +108,7 @@ export interface EconomicsResult {
   scenarios: Record<string, ScenarioResult>;
   cost_breakdown: Record<string, { category: string; amount_inr: number; source: string }>;
   total_estimated_production_cost_inr: number;
+  break_even_price_inr_quintal: number;
   assumptions_summary: Record<string, unknown>;
 }
 
