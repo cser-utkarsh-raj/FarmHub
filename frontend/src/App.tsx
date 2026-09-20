@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Onboarding from "./pages/Onboarding";
 import RoleSelection from "./pages/RoleSelection";
 import FarmerOnboarding from "./pages/Onboarding/FarmerOnboarding";
+import BuyerDashboard from "./pages/BuyerDashboard";
 import CropSelection from "./pages/CropSelection";
 import CropPlan from "./pages/CropPlan";
 import PriceIntelligence from "./pages/PriceIntelligence";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/onboarding/*" element={<Onboarding />} />
           <Route path="/onboarding/farmer" element={<FarmerOnboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
           <Route path="/crop-selection" element={<CropSelection />} />
           <Route path="/crop-plan" element={<CropPlan />} />
           <Route path="/price-intelligence" element={<PriceIntelligence />} />
