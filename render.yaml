@@ -25,3 +25,21 @@ services:
         sync: false
       - key: FARMHUB_ML_MODEL_PATH
         value: /app/backend/ml/models/price_forecaster.joblib
+
+  - type: cron
+    name: farmhub-mandi-sync
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    schedule: "30 13 * * *"
+    dockerCommand: python backend/scripts/sync_mandi.py
+    envVars:
+      - key: DATA_GOV_IN_API_KEY
+        sync: false
+      - key: MANDI_INGESTION_KEY
+        sync: false
+      - key: FARMHUB_API_URL
+        fromService:
+          name: farmhub-api
+          type: web
+          property: hostport
