@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { farmHubApi, formatINR } from "@/lib/api";
+import { farmHubApi } from "@/lib/api";
 
 export default function BuyerDiscovery() {
   const navigate = useNavigate();
