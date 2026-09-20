@@ -85,9 +85,7 @@ export default function Dashboard() {
   const bestMarket = compareMutation.data?.find((item) => item.is_best_net_value);
   const economics = economicsMutation.data;
   const expectedScenario = economics?.scenarios?.expected;
-  const breakEven = expectedScenario
-    ? expectedScenario.total_cost_inr / Math.max(expectedScenario.effective_saleable_quintals, 0.01)
-    : null;
+  const breakEven = economics?.break_even_price_inr_quintal ?? null;
 
   if (!token) {
     navigate("/", { replace: true });
