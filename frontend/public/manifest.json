@@ -1,0 +1,17 @@
+{
+  "name": "FarmHub",
+  "short_name": "FarmHub",
+  "description": "Agricultural decision support for Bihar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f6f2",
+  "theme_color": "#5d7c4f",
+  "icons": [
+    {
+      "src": "/farm-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
