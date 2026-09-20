@@ -149,6 +149,55 @@ export interface UserResponse {
   created_at: string;
 }
 
+
+
+export interface SprayAdvisory {
+  status: string;
+  message: string;
+  color: string;
+}
+
+export interface DayForecast {
+  date: string;
+  temp_max_c: number;
+  temp_min_c: number;
+  rain_mm: number;
+  rain_prob_pct: number;
+  wind_speed_kmh: number;
+  spray_advisory: SprayAdvisory;
+}
+
+export interface WeatherResponse {
+  district: string;
+  latitude: number;
+  longitude: number;
+  current_temperature_c: number;
+  current_wind_speed_kmh: number;
+  today_spray_advisory: SprayAdvisory;
+  seven_day_forecast: DayForecast[];
+  source: string;
+  updated_at: string;
+  note?: string;
+}
+
+export interface Inquiry {
+  id: number;
+  farmer_id: number;
+  buyer_id: number;
+  farmer_name: string;
+  farmer_phone: string;
+  buyer_business_name: string;
+  crop: string;
+  quantity_quintals: number;
+  expected_harvest_date: string;
+  target_price_inr: number | null;
+  notes: string | null;
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "CONTACTED" | string;
+  buyer_response: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;
@@ -227,6 +276,31 @@ export const farmHubApi = {
   forecastPrice(body: { crop: string; location: string; market: string; harvest_date: string }) {
     return request<ForecastResponse>("/forecast/price", {
       method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+  getWeather(district: string) {
+    return request<WeatherResponse>(`/weather/${encodeURIComponent(district)}`);
+  },
+  getInquiries() {
+    return request<Inquiry[]>(`/inquiries`);
+  },
+  submitInquiry(buyerUserId: number, body: {
+    buyer_id: number;
+    crop: string;
+    quantity_quintals: number;
+    expected_harvest_date: string;
+    target_price_inr?: number | null;
+    notes?: string;
+  }) {
+    return request<Inquiry>(`/buyers/${buyerUserId}/inquire`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+  updateInquiryStatus(inquiryId: number, body: { status: string; buyer_response?: string }) {
+    return request<Inquiry>(`/inquiries/${inquiryId}/status`, {
+      method: "PATCH",
       body: JSON.stringify(body),
     });
   },
