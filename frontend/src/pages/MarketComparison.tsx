@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { farmHubApi, formatINR } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 export default function MarketComparison() {
   const navigate = useNavigate();
@@ -34,12 +36,22 @@ export default function MarketComparison() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" userDistrict={district} />
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Market Comparison</CardTitle>
-            <p className="text-muted-foreground text-sm mt-1">Compare Bihar mandis by estimated net realization, not headline price alone.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle>Mandi Comparison & Net Realization</CardTitle>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Compare Bihar mandis by actual estimated net realization after factoring transport and mandi charges.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+                Back to dashboard
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -76,8 +88,13 @@ export default function MarketComparison() {
             </CardContent>
           </Card>
         )}
-        <div className="flex justify-end"><Button variant="outline" onClick={() => navigate("/price-intelligence")}>Back to price intelligence</Button></div>
-      </div>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => navigate("/price-intelligence")}>
+            Back to price intelligence
+          </Button>
+        </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

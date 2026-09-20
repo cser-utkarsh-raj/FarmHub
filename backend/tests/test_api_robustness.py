@@ -106,9 +106,17 @@ def test_duplicate_phone_returns_400():
     assert res.status_code == 400
 
 
+_user_seq = 100
+
+def _unique_phone():
+    global _user_seq
+    _user_seq += 1
+    return f"90000{_user_seq:05d}"
+
+
 def _farmer_and_buyer():
-    farmer = _register("9000000020", role="FARMER")
-    buyer = _register("9000000021", role="BUYER", business_name="Test Traders")
+    farmer = _register(_unique_phone(), role="FARMER")
+    buyer = _register(_unique_phone(), role="BUYER", business_name="Test Traders")
     return farmer, buyer
 
 
@@ -125,7 +133,7 @@ def _inquiry_payload(buyer_id, **over):
 
 def test_inquiry_requires_farmer_role():
     _, buyer = _farmer_and_buyer()
-    other = _register("9000000022", role="BUYER", business_name="Other Traders")
+    other = _register(_unique_phone(), role="BUYER", business_name="Other Traders")
     res = client.post(
         f"/api/buyers/{buyer['user_id']}/inquire",
         json=_inquiry_payload(buyer["user_id"]),

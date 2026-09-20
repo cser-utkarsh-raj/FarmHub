@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     ENVIRONMENT: str = "development"
-    PROJECT_NAME: str = "FarmHub API"
+    PROJECT_NAME: str = "Shennong API"
     API_V1_STR: str = "/api"
 
     SECRET_KEY: str = ""
@@ -46,6 +46,9 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
     def model_post_init(self, __context, /) -> None:
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
         if not self.SECRET_KEY:
             if self.ENVIRONMENT.lower() == "production":
                 raise RuntimeError(

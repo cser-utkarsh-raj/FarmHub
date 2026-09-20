@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { farmHubApi, formatINR } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 export default function PriceIntelligence() {
   const [params] = useSearchParams();
@@ -74,8 +76,14 @@ export default function PriceIntelligence() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" userDistrict={district} />
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Mandi Price Intelligence</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Real-time Agmarknet prices and ML forecast projections across Bihar mandis.</p>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3">
           <Select value={crop} onValueChange={setCrop}>
             <SelectTrigger><SelectValue placeholder="Crop" /></SelectTrigger>
@@ -148,8 +156,13 @@ export default function PriceIntelligence() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end"><Button variant="outline" onClick={() => navigate("/market-comparison")}>Compare markets</Button></div>
-      </div>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => navigate("/market-comparison")}>
+            Compare markets
+          </Button>
+        </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

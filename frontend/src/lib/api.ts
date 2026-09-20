@@ -217,7 +217,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
   if (!response.ok) {
-    let message = `FarmHub API error (${response.status})`;
+    let message = `Shennong API error (${response.status})`;
     try {
       const payload = await response.json();
       if (typeof payload?.detail === "string") message = payload.detail;
@@ -328,3 +328,5 @@ export function formatINR(value: number, maximumFractionDigits = 0) {
     maximumFractionDigits,
   }).format(value);
 }
+
+export const shennongApi = farmHubApi;

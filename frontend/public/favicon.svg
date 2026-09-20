@@ -1,9 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <!-- Base Field Container -->
   <rect width="40" height="40" rx="8" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.5"/>
+  
+  <!-- Quadrant 1: Top-Left Cultivation Plot (Deep Agricultural Green) -->
   <rect x="5" y="5" width="13.5" height="13.5" rx="3" fill="#15803D"/>
+  
+  <!-- Quadrant 2: Top-Right Sky/Weather Plot (Sky Blue) -->
   <rect x="21.5" y="5" width="13.5" height="13.5" rx="3" fill="#0284C7"/>
+  
+  <!-- Quadrant 3: Bottom-Left Water/Irrigation Furrow (Bright Sky Cyan) -->
   <rect x="5" y="21.5" width="13.5" height="13.5" rx="3" fill="#38BDF8"/>
+  
+  <!-- Quadrant 4: Bottom-Right Harvest/Growth Plot (Vibrant Crop Green) -->
   <rect x="21.5" y="21.5" width="13.5" height="13.5" rx="3" fill="#16A34A"/>
+  
+  <!-- Central Seed Node (Diamond) -->
   <path d="M20 15.5 L24.5 20 L20 24.5 L15.5 20 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5" stroke-linejoin="round"/>
   <circle cx="20" cy="20" r="1.8" fill="#0284C7"/>
 </svg>

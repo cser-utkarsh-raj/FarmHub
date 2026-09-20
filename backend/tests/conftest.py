@@ -12,6 +12,36 @@ def setup_test_db():
     db = SessionLocal()
     try:
         seed_database(db)
+        from datetime import date, timedelta
+        from backend.app.models.market_price import MandiRecord
+        base_date = date.today() - timedelta(days=40)
+        for i in range(35):
+            rec_date = base_date + timedelta(days=i)
+            db.add(MandiRecord(
+                commodity="Maize",
+                variety="Yellow",
+                market="Gulabbagh (Purnia)",
+                district="Purnia",
+                state="Bihar",
+                min_price=2000.0 + i,
+                max_price=2200.0 + i,
+                modal_price=2100.0 + i,
+                record_date=rec_date,
+                is_synthetic=False
+            ))
+            db.add(MandiRecord(
+                commodity="Wheat",
+                variety="Dara",
+                market="Patna (Gulzarbagh)",
+                district="Patna",
+                state="Bihar",
+                min_price=2200.0 + i,
+                max_price=2400.0 + i,
+                modal_price=2300.0 + i,
+                record_date=rec_date,
+                is_synthetic=False
+            ))
+        db.commit()
     finally:
         db.close()
     yield

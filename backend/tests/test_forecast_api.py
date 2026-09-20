@@ -31,6 +31,10 @@ def test_forecast_service_unavailable_without_model(monkeypatch):
     assert response.status_code == 503
     assert "No trained FarmHub price model is installed" in response.json()["detail"]
 
+@pytest.mark.skipif(
+    not __import__("os").path.exists("backend/ml/models/price_forecaster.joblib"),
+    reason="Trained ML model artifact is gitignored and not present"
+)
 def test_forecast_with_real_trained_model():
     target_date = (date.today() + timedelta(days=30)).isoformat()
     payload = {

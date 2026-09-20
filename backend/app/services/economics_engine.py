@@ -163,6 +163,7 @@ def calculate_crop_economics(data: EconomicsInput) -> EconomicsResult:
         scenarios=scenarios,
         cost_breakdown=cost_breakdown,
         total_estimated_production_cost_inr=round(farm_production_cost, 2),
+        break_even_price_inr_quintal=round(break_even_price, 2),
         assumptions_summary={
             "yield_per_acre_quintals": yield_per_acre,
             "baseline_price_inr_quintal": base_price,

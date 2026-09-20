@@ -1,17 +1,22 @@
 {
-  "name": "FarmHub",
-  "short_name": "FarmHub",
-  "description": "Agricultural decision support for Bihar.",
+  "name": "Shennong",
+  "short_name": "Shennong",
+  "description": "Agricultural decision support for Bihar farmers, buyers, and distributors. Presented by .dot.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f6f2",
-  "theme_color": "#5d7c4f",
+  "background_color": "#ffffff",
+  "theme_color": "#15803d",
   "icons": [
     {
-      "src": "/farm-icon.svg",
+      "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/farm-icon.svg",
+      "sizes": "40x40",
+      "type": "image/svg+xml"
     }
   ]
 }

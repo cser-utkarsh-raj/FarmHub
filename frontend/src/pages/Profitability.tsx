@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { farmHubApi, formatINR, type ScenarioResult } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 export default function Profitability() {
   const [crop, setCrop] = useState(localStorage.getItem("farmhub_selected_crop") || "Maize");
@@ -41,10 +43,16 @@ export default function Profitability() {
   const scenarioLabel = (scenario: ScenarioResult) => scenario.scenario.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" />
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Crop Economics & Cost Calculator</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Evaluate estimated production costs, expected revenue, and break-even realization for your land holding.</p>
+        </div>
+
         <Card>
-          <CardHeader><CardTitle>Profitability Analysis</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Parameters</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
@@ -114,7 +122,8 @@ export default function Profitability() {
             </Card>
           </>
         )}
-      </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

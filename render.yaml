@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: farmhub-api
+    name: shennong-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
@@ -10,7 +10,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: PROJECT_NAME
-        value: FarmHub API
+        value: Shennong API
       - key: API_V1_STR
         value: /api
       - key: SECRET_KEY
@@ -18,7 +18,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGINS
-        value: https://farmhub-dot.vercel.app
+        value: https://shennong-dot.vercel.app,https://farmhub-dot.vercel.app
       - key: DATA_GOV_IN_API_KEY
         sync: false
       - key: MANDI_INGESTION_KEY
@@ -27,7 +27,7 @@ services:
         value: /app/backend/ml/models/price_forecaster.joblib
 
   - type: cron
-    name: farmhub-mandi-sync
+    name: shennong-mandi-sync
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
@@ -40,6 +40,6 @@ services:
         sync: false
       - key: FARMHUB_API_URL
         fromService:
-          name: farmhub-api
+          name: shennong-api
           type: web
           property: hostport

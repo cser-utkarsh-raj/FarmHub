@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { farmHubApi } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 function normalizeCategory(value: string) {
   return value.trim().toLowerCase();
@@ -39,16 +41,27 @@ export default function CropSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" />
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Crop Selection</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle>Bihar Crop Catalogue</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Select a crop to configure growth cycles, input cost benchmarks, and market analytics.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                Back to dashboard
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Search crops..."
+                placeholder="Search crops in English or Hindi (e.g. Maize, मक्का)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -60,6 +73,7 @@ export default function CropSelection() {
                 <Button
                   key={cat}
                   variant={cat === category ? "default" : "outline"}
+                  size="sm"
                   onClick={() => {
                     const next = new URLSearchParams(params);
                     if (cat === "all") next.delete("category");
@@ -67,7 +81,7 @@ export default function CropSelection() {
                     setParams(next);
                   }}
                 >
-                  {cat === "all" ? "All" : crops.find((c) => normalizeCategory(c.category) === cat)?.category ?? cat}
+                  {cat === "all" ? "All categories" : crops.find((c) => normalizeCategory(c.category) === cat)?.category ?? cat}
                 </Button>
               ))}
             </div>
@@ -81,17 +95,29 @@ export default function CropSelection() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCrops.map((crop) => (
-                <Card key={crop.id} className="p-4 hover:shadow-lg transition-shadow">
-                  <h3 className="font-bold text-foreground mb-1">{crop.name}</h3>
-                  <p className="text-sm text-muted-foreground">{crop.name_hi}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{crop.category} · {crop.duration_days} days</p>
-                  <Button size="sm" onClick={() => handleSelect(crop)} className="w-full mt-3">Select</Button>
+                <Card key={crop.id} className="p-4 hover:border-emerald-500 hover:shadow-md transition-all border-border bg-card">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-bold text-foreground text-base">{crop.name}</h3>
+                      <p className="text-sm text-muted-foreground">{crop.name_hi}</p>
+                    </div>
+                    <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                      {crop.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Cycle duration: {crop.duration_days} days
+                  </p>
+                  <Button size="sm" onClick={() => handleSelect(crop)} className="w-full mt-4">
+                    Select this crop
+                  </Button>
                 </Card>
               ))}
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

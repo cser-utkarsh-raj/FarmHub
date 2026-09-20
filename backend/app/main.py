@@ -58,7 +58,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 def health_check():
     return {
         "status": "healthy",
-        "service": "FarmHub Backend",
+        "service": "Shennong Backend",
         "region_scope": "Bihar, India",
         "presented_by": ".dot"
     }
@@ -75,13 +75,13 @@ def readiness_check():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connectivity check failed.",
         ) from exc
-    return {"status": "ready", "service": "FarmHub Backend"}
+    return {"status": "ready", "service": "Shennong Backend"}
 
 
 @app.get("/", tags=["Health & Monitoring"])
 def root():
     return {
-        "message": "Welcome to FarmHub API presented by .dot",
+        "message": "Welcome to Shennong API presented by .dot",
         "docs_url": "/docs",
         "region_scope": "Bihar, India",
         "supported_crops": ["Maize", "Wheat", "Paddy", "Potato", "Onion", "Tomato", "Mustard", "Gram", "Cauliflower"]

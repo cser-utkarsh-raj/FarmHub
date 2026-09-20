@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { farmHubApi } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 export default function BuyerDiscovery() {
   const navigate = useNavigate();
@@ -55,13 +57,23 @@ export default function BuyerDiscovery() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar
+        userRole={(meQuery.data?.role as "FARMER" | "BUYER" | "DISTRIBUTOR") || "FARMER"}
+        userName={meQuery.data?.full_name}
+        userDistrict={district}
+      />
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div><CardTitle>Buyers & distributors</CardTitle><p className="text-muted-foreground text-sm mt-1">Find commercial partners for your crop and send a structured supply inquiry.</p></div>
-              <Button variant="outline" onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+              <div>
+                <CardTitle>Buyers & commercial partners</CardTitle>
+                <p className="text-muted-foreground text-sm mt-1">Find verified buyers and distributors for your crop and submit direct supply inquiries.</p>
+              </div>
+              <Button variant="outline" onClick={() => navigate(meQuery.data?.role === "FARMER" ? "/dashboard" : "/buyer-dashboard")}>
+                Back to dashboard
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -69,7 +81,9 @@ export default function BuyerDiscovery() {
               <div className="space-y-2"><Label>Crop</Label><Input value={crop} onChange={(e) => setCrop(e.target.value)} /></div>
               <div className="space-y-2"><Label>District</Label><Input value={district} onChange={(e) => setDistrict(e.target.value)} /></div>
             </div>
-            <Button variant={verifiedOnly ? "default" : "outline"} onClick={() => setVerifiedOnly((value) => !value)}><ShieldCheck className="mr-2 h-4 w-4" />{verifiedOnly ? "Verified only" : "Include unverified"}</Button>
+            <Button variant={verifiedOnly ? "default" : "outline"} onClick={() => setVerifiedOnly((value) => !value)}>
+              <ShieldCheck className="mr-2 h-4 w-4" />{verifiedOnly ? "Verified only" : "Include unverified"}
+            </Button>
 
             {query.isLoading && <p className="text-sm text-muted-foreground">Loading commercial partners…</p>}
             {query.isError && <p className="text-sm text-destructive">Unable to load matching buyers.</p>}
@@ -77,10 +91,13 @@ export default function BuyerDiscovery() {
 
             <div className="space-y-3">
               {(query.data ?? []).map((buyer) => (
-                <div key={buyer.user_id} className="rounded-xl border p-4">
+                <div key={buyer.user_id} className="rounded-xl border border-border bg-card p-4 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                     <div>
-                      <div className="flex items-center gap-2"><h3 className="font-semibold text-foreground">{buyer.business_name}</h3><Badge variant="secondary"><ShieldCheck className="mr-1 h-3 w-3" /> {buyer.verification_status.replace(/_/g, " ")}</Badge></div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground">{buyer.business_name}</h3>
+                        <Badge variant="secondary"><ShieldCheck className="mr-1 h-3 w-3" /> {buyer.verification_status.replace(/_/g, " ")}</Badge>
+                      </div>
                       <p className="text-sm text-muted-foreground mt-1">{buyer.crops_purchased.join(", ") || "Crop preferences not listed"}</p>
                       <p className="text-sm text-muted-foreground">{buyer.district}, {buyer.state} · approx. {buyer.approx_monthly_quantity_quintals.toLocaleString("en-IN")} qtl/month</p>
                     </div>
@@ -89,7 +106,7 @@ export default function BuyerDiscovery() {
                     </Button>
                   </div>
 
-                  {sentTo === buyer.user_id && <p className="text-sm text-primary mt-3 flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Inquiry sent successfully. You can track the response from your account.</p>}
+                  {sentTo === buyer.user_id && <p className="text-sm text-emerald-700 mt-3 flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Inquiry sent successfully. You can track the response from your account.</p>}
 
                   {openBuyer === buyer.user_id && (
                     <div className="mt-4 rounded-xl bg-muted/50 p-4 space-y-4">
@@ -107,13 +124,14 @@ export default function BuyerDiscovery() {
               ))}
             </div>
 
-            <div className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">Privacy note</p>
-              <p className="mt-1">FarmHub shares your name and phone with the buyer only through the inquiry response contract. Aadhaar numbers are not stored by FarmHub.</p>
+              <p className="mt-1">Shennong shares your name and phone with the buyer only through the inquiry response contract. Aadhaar numbers are never stored by Shennong.</p>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

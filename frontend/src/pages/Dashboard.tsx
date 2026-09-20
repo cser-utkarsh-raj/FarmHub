@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertCircle, ArrowRight, CloudRain, Droplets, LogOut, MapPin,
-  RefreshCw, Sprout, Store, Sun, TrendingUp, Users, Wind
+  AlertCircle, ArrowRight, CloudRain, Droplets, MapPin,
+  Sprout, Sun, TrendingUp, Users, Wind
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { farmHubApi, formatINR } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
@@ -116,27 +118,29 @@ export default function Dashboard() {
     return null;
   }
 
-  const signOut = () => {
-    localStorage.removeItem("farmhub_token");
-    localStorage.removeItem("farmhub_phone");
-    localStorage.removeItem("farmer_profile");
-    navigate("/", { replace: true });
-  };
-
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" userName={meQuery.data.full_name} userDistrict={district} />
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">FarmHub · Bihar</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs uppercase tracking-wider font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Bihar Farmer Portal
+              </span>
+            </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">Namaste, {meQuery.data.full_name}</h1>
-            <p className="text-muted-foreground mt-1 flex items-center gap-1">
-              <MapPin className="h-4 w-4" /> {district} · {farmer?.land_area ?? "—"} {farmer?.local_land_unit ?? "land"}
+            <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+              <MapPin className="h-4 w-4 text-emerald-600" /> {district} · {farmer?.land_area ?? "—"} {farmer?.local_land_unit ?? "land"}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => navigate("/crop-selection")}><Sprout className="mr-2 h-4 w-4" /> Change crop</Button>
-            <Button variant="ghost" onClick={signOut}><LogOut className="mr-2 h-4 w-4" /> Sign out</Button>
+            <Button variant="outline" onClick={() => navigate("/crop-selection")}>
+              <Sprout className="mr-2 h-4 w-4 text-emerald-600" /> Switch crop
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/market-comparison")}>
+              <TrendingUp className="mr-2 h-4 w-4 text-sky-600" /> Compare mandis
+            </Button>
           </div>
         </header>
 
@@ -144,7 +148,7 @@ export default function Dashboard() {
           <Alert>
             <CloudRain className="h-4 w-4" />
             <AlertTitle>Weather unavailable</AlertTitle>
-            <AlertDescription>Live weather could not be loaded. FarmHub will not invent current conditions.</AlertDescription>
+            <AlertDescription>Live weather could not be loaded. Shennong will not invent current conditions.</AlertDescription>
           </Alert>
         )}
 
@@ -280,15 +284,8 @@ export default function Dashboard() {
           </Card>
         </section>
 
-        <footer className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t pt-5 text-sm text-muted-foreground">
-          <span>FarmHub · Bihar agricultural decision support</span>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/price-intelligence")}>Prices</Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/profitability")}>Economics</Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/buyer-discovery")}>Buyers</Button>
-          </div>
-        </footer>
-      </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

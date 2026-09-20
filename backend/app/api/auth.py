@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
@@ -65,7 +65,7 @@ def require_role(*roles: UserRole):
 
 @router.post("/register", response_model=Token)
 @limiter.limit(auth_rate_limit)
-def register(request: Request, payload: UserCreate, db: Session = Depends(get_db)):
+def register(request: Request, response: Response, payload: UserCreate, db: Session = Depends(get_db)):
     # Check phone uniqueness
     existing_user = db.query(User).filter(User.phone == payload.phone).first()
     if existing_user:
@@ -93,6 +93,7 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
         is_active=True
     )
     db.add(user)
+    db.flush()
 
     # Create associated profile based on role
     if payload.role == UserRole.FARMER:
@@ -146,7 +147,7 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
 
 @router.post("/login", response_model=Token)
 @limiter.limit(auth_rate_limit)
-def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
+def login(request: Request, response: Response, payload: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.phone == payload.phone).first()
     if not user or not verify_password(payload.password, user.hashed_password) or not user.is_active:
         raise HTTPException(

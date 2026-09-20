@@ -4,88 +4,89 @@
 
 @layer base {
   :root {
-    /* FarmHub Earthy Palette */
-    --background: 20 28% 98%;
-    --foreground: 25 30% 20%;
+    /* Shennong Green + Sky Blue + White Palette */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 30% 20%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 30% 20%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary: Warm Sage Green */
-    --primary: 142 38% 42%;
+    /* Primary: Deep Agricultural Green (#15803d) */
+    --primary: 142 71% 29%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Warm Terracotta */
-    --secondary: 22 65% 58%;
+    /* Secondary: Sky Blue (#0284c7) */
+    --secondary: 199 89% 48%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 30 20% 94%;
-    --muted-foreground: 25 25% 45%;
+    /* Light Sky Tint for informational states */
+    --accent: 199 95% 94%;
+    --accent-foreground: 199 89% 28%;
 
-    --accent: 35 60% 55%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 142 38% 42%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 142 71% 29%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 25 30% 20%;
-    --sidebar-primary: 142 38% 42%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 142 71% 29%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 20% 94%;
-    --sidebar-accent-foreground: 25 30% 20%;
-    --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 142 38% 42%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 142 71% 29%;
   }
 
   .dark {
-    --background: 25 30% 14%;
-    --foreground: 30 20% 94%;
+    --background: 222 47% 10%;
+    --foreground: 210 40% 98%;
 
-    --card: 25 30% 18%;
-    --card-foreground: 30 20% 94%;
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 25 30% 18%;
-    --popover-foreground: 30 20% 94%;
+    --popover: 222 47% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 142 38% 55%;
+    --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 22 65% 62%;
+    --secondary: 199 89% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 25 30% 22%;
-    --muted-foreground: 30 20% 65%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 35 60% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 199 89% 20%;
+    --accent-foreground: 199 90% 90%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 63% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 25 30% 25%;
-    --input: 25 30% 25%;
-    --ring: 142 38% 55%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 142 70% 45%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 25 30% 16%;
-    --sidebar-foreground: 30 20% 94%;
-    --sidebar-primary: 142 38% 55%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 25 30% 24%;
-    --sidebar-accent-foreground: 30 20% 94%;
-    --sidebar-border: 25 30% 25%;
-    --sidebar-ring: 142 38% 55%;
+    --sidebar-accent: 217 33% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 142 70% 45%;
   }
 }
 
@@ -98,16 +99,6 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-
-  /* Subtle grain texture on background */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-    z-index: 0;
-  }
 }
 
 @layer utilities {
@@ -115,26 +106,29 @@
     text-wrap: balance;
   }
 
-  .gradient-earth {
-    background: linear-gradient(135deg, hsl(142 38% 42%) 0%, hsl(35 60% 55%) 100%);
-  }
-
-  .gradient-warm {
-    background: linear-gradient(135deg, hsl(22 65% 58%) 0%, hsl(35 60% 55%) 100%);
-  }
-
   .card-shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
   .card-shadow-hover {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.2s ease;
+  }
+
+  /* Support for legacy gradient classes mapped to clean brand styling */
+  .gradient-earth {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .gradient-warm {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
   }
 }
 
 @layer components {
   .farm-card {
-    @apply rounded-xl border border-border bg-card p-6 card-shadow;
+    @apply rounded-lg border border-border bg-card p-6 card-shadow;
   }
 }

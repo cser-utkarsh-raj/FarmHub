@@ -44,15 +44,15 @@ export default function Index() {
           <div className="flex items-center justify-center mb-6">
             <img
               src="/farm-icon.svg"
-              alt="FarmHub logo"
-              className="w-12 h-12 text-primary"
+              alt="Shennong logo"
+              className="w-12 h-12"
             />
           </div>
           <h1 className="text-4xl font-bold text-foreground text-balance mb-4">
-            FarmHub
+            SHENNONG
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl">
-            Empowering Bihar's farmers with real-time market intelligence
+            Agricultural decision support for Bihar farmers, buyers, and distributors
           </p>
         </div>
 
@@ -193,7 +193,7 @@ export default function Index() {
               Ready to make better farm decisions?
             </h2>
             <p className="text-muted-foreground mb-6 max-w-xl">
-              Join thousands of farmers in Bihar who are using FarmHub to optimize their harvests and maximize profits
+              Join thousands of agricultural operators in Bihar who are using Shennong to optimize harvests and market realization
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button className="py-3 px-6 font-medium gradient-earth hover:opacity-90 transition-opacity">

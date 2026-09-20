@@ -4,6 +4,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { farmHubApi } from "@/lib/api";
+import { ShennongNavbar } from "@/components/ShennongNavbar";
+import { DotFooter } from "@/components/DotFooter";
 
 export default function CropPlan() {
   const [params] = useSearchParams();
@@ -24,10 +26,18 @@ export default function CropPlan() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background flex flex-col">
+      <ShennongNavbar userRole="FARMER" />
+      <main className="flex-1 max-w-3xl w-full mx-auto p-4 md:p-6 space-y-6">
         <Card>
-          <CardHeader><CardTitle>Crop Plan Summary</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Crop Plan Summary</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+                Back to dashboard
+              </Button>
+            </div>
+          </CardHeader>
           <CardContent className="space-y-4">
             {isLoading && <p className="text-sm text-muted-foreground">Loading crop plan data…</p>}
             {error && <p className="text-sm text-destructive">Unable to load the crop catalogue.</p>}
@@ -46,7 +56,8 @@ export default function CropPlan() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
+      <DotFooter />
     </div>
   );
 }

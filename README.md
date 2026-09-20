@@ -1,62 +1,87 @@
-# FarmHub
+# SHENNONG
 
 > Agricultural decision-support platform for Bihar, presented by `.dot`.
 
-FarmHub is being built as a practical agricultural intelligence platform rather than a demo-only application. The first launch target is Bihar, with the architecture designed to support expansion later.
+Shennong is a production-oriented agricultural decision-support system built for Bihar farmers, commercial buyers, and distributors. The underlying repository is maintained at `cser-utkarsh-raj/FarmHub` with strict architectural separation between application tiers.
 
-## What FarmHub is for
+---
 
-FarmHub brings the main decisions a farmer faces around a crop into one workflow:
+## Authentic User Roles
 
-- **Crop planning** — crop selection, sowing/harvest timing and land-unit handling.
-- **Market intelligence** — current and historical mandi prices.
-- **Price forecasting** — future price estimates for a planned harvest date, with uncertainty and limitations shown to the user.
-- **Profitability** — production cost, expected yield, selling price, revenue, net profit, margin and ROI scenarios.
-- **Market comparison** — compare markets using price plus estimated logistics/fees rather than headline price alone.
-- **Buyer/distributor discovery** — find relevant local commercial contacts and submit supply inquiries.
-- **Weather intelligence** — district weather and practical field/spray advisories.
+Shennong serves three key participants in the agricultural value chain:
 
-## Repository architecture
+1. **Farmer (`FARMER`)**: Operational farm dashboard, crop planning across Bihar agro-climatic zones, input cost economics, live Agmarknet mandi prices, ML harvest price forecasting, distance-adjusted net realization comparison, and direct buyer supply inquiries.
+2. **Commercial Buyer (`BUYER`)**: Trading desk with incoming farmer supply inquiries, verified commercial network directory, and real-time mandi price benchmarking.
+3. **Distributor (`DISTRIBUTOR`)**: Regional supply consolidation, multi-district logistics coordination, and merchant inquiry workflows.
 
-The repository has a strict separation between application layers:
+---
+
+## Core Capabilities
+
+Shennong organizes the complete decision-making workflow:
+
+- **Crop Planning & Agronomics**: Cultivar selection, sowing/harvest windows, duration benchmarks, and Bihar land-unit conversion (Bigha, Katha, Acre, Hectare).
+- **Mandi Price Intelligence**: Live modal, minimum, and maximum prices reported from official Agmarknet mandi feeds across Bihar districts (Purnia, Patna, Nalanda, Muzaffarpur, Bhagalpur, etc.).
+- **ML Price Forecasting**: Chronologically validated Histogram Gradient Boosting price model with conformal prediction intervals (90% coverage) and explicit limitation disclosures. No heuristic/fabricated fallback numbers.
+- **Production Economics & Scenarios**: Input cost breakdowns (seeds, fertilizers, pesticides, irrigation, labor, machinery, packaging, mandi fees), break-even price analysis, and three scenario models (conservative, expected, high-price).
+- **Mandi Comparison & Net Realization**: Objective comparison of selling destinations taking into account distance, freight rates (₹/km/qtl), and mandi transaction fees rather than headline price alone.
+- **Commercial Partner Discovery**: Verified directory of grain merchants, aggregators, and processing mills with structured supply inquiries.
+- **Weather & Field Advisories**: District weather conditions, 7-day outlooks, and practical spray/field advisories powered by Open-Meteo.
+
+---
+
+## Repository Architecture
 
 ```text
 FarmHub/
-├── frontend/                 # React + TypeScript web application
+├── frontend/                 # React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
 │   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── ...
+│   │   ├── components/       # ShennongNavbar, DotFooter, UI primitives
+│   │   ├── pages/            # RoleSelection, Onboarding, Dashboards, Market Intelligence
+│   │   └── lib/              # API client and formatting utilities
+│   ├── public/               # Vector logos, icons, PWA manifest
+│   └── package.json
 │
-├── backend/                  # FastAPI + database + business logic
+├── backend/                  # Python + FastAPI + SQLAlchemy + Scikit-Learn
 │   ├── app/
-│   ├── tests/
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── API_CONTRACTS.md
+│   │   ├── api/              # REST routers (auth, crops, economics, market, forecast, buyers, weather)
+│   │   ├── core/             # Configuration, database engine, security, rate limiting
+│   │   ├── models/           # SQLAlchemy models (User, FarmerProfile, BuyerProfile, MandiRecord, CropInquiry)
+│   │   └── services/         # Business logic & computation engines
+│   ├── ml/                   # ML pipeline, training, validation, inference, provenance
+│   ├── tests/                # Automated pytest suite (unit, API robustness, e2e integration)
+│   ├── requirements.txt      # Production dependencies (FastAPI, psycopg2-binary, scikit-learn, etc.)
+│   └── Dockerfile
 │
-├── AI_RULES.md
-├── README.md
-└── project-level configuration/documentation
+├── render.yaml               # Infrastructure-as-Code for Render web service & daily mandi sync cron
+└── README.md
 ```
 
-**Important:** frontend code belongs in `frontend/`. Backend/API code belongs in `backend/`. Agents must not create a second application at the repository root or overwrite another agent's area.
+---
 
-## Frontend
+## Running Locally
 
-The frontend is a Vite application using:
+### 1. Backend
 
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Responsive, mobile-first UI
+```bash
+cd backend
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
 
-Current product surfaces include role selection, farmer onboarding, crop selection/planning, price intelligence, profitability, market comparison, buyer discovery and dashboard navigation.
+pip install -r requirements.txt
+uvicorn backend.app.main:app --reload --port 8000
+```
 
-The frontend is being progressively connected to the real backend; existing UI mock data should not be mistaken for production market data.
+Local Backend API:
+- Interactive Docs (Swagger): `http://localhost:8000/docs`
+- Alternative Docs (ReDoc): `http://localhost:8000/redoc`
+- Health probe: `http://localhost:8000/health`
+- Readiness probe: `http://localhost:8000/health/ready`
 
-### Run frontend
+### 2. Frontend
 
 ```bash
 cd frontend
@@ -64,121 +89,35 @@ npm install
 npm run dev
 ```
 
-## Backend
-
-The backend provides:
-
-- JWT authentication and role-based access
-- Farmer, distributor and buyer profiles
-- Bihar land-unit conversion support
-- Crop catalogue and agronomic/economic baselines
-- Market price ingestion and querying
-- Price forecast API contract
-- Profitability/scenario calculations
-- Distance-adjusted market comparison
-- Buyer directory and inquiries
-- Weather integration and advisories
-- Automated backend tests
-
-### Run backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-Local API:
-
-- `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-## Backend API surface
-
-The authoritative integration contract is [`backend/API_CONTRACTS.md`](backend/API_CONTRACTS.md).
-
-Key endpoints include:
-
-| Area | Endpoint |
-|---|---|
-| Register | `POST /api/auth/register` |
-| Login | `POST /api/auth/login` |
-| Current profile | `GET /api/auth/me` |
-| Crops | `GET /api/crops` |
-| Economics | `POST /api/economics/calculate` |
-| Current prices | `GET /api/market/prices/current` |
-| Price history | `GET /api/market/prices/history` |
-| Market comparison | `POST /api/market/compare` |
-| Price forecast | `POST /api/forecast/price` |
-| Buyers | `GET /api/buyers` |
-| Buyer inquiry | `POST /api/buyers/{buyer_user_id}/inquire` |
-| Inquiries | `GET /api/inquiries` |
-| Weather | `GET /api/weather/{district}` |
-
-Frontend integrations should follow the backend contract instead of inventing parallel endpoint names.
-
-## Data and ML
-
-FarmHub currently uses four official Data.gov.in resources:
-
-| Resource | FarmHub purpose |
-|---|---|
-| Mandi daily prices | Market history, comparison and price forecasting |
-| Variety-wise prices | Variety-level market signals |
-| Daily district rainfall | Rainfall history and weather-linked features |
-| District/season/crop production | Historical production and future yield modeling |
-
-All four use one `DATA_GOV_IN_API_KEY` environment secret. Public resource IDs are stored in the ML provider layer; they are not credentials.
-
-The ML price pipeline requires fresh fetched data, provenance metadata, file-digest verification, chronological validation and baseline comparison. Synthetic demo market records are excluded from ML inference.
-
-## Privacy and verification
-
-FarmHub should not store raw Aadhaar numbers. Verification is represented through verification status/appropriate external verification mechanisms rather than retaining unnecessary identity documents.
-
-Secrets, passwords, JWT keys, ingestion keys and API credentials must remain outside source control.
-
-### Data.gov.in API key placement
-
-FarmHub's ML ingestion has the public Data.gov.in sample/demo key as a development fallback so a fresh checkout can exercise the request path. It is limited by Data.gov.in and is not suitable for training a production model. The real key belongs only in runtime secrets:
-
-- **Local:** set `DATA_GOV_IN_API_KEY` in the PowerShell/Linux environment (or an untracked `.env` loaded by your local environment).
-- **GitHub Actions:** repository `Settings → Secrets and variables → Actions → New repository secret` named `DATA_GOV_IN_API_KEY`.
-- **Render/deployment:** add `DATA_GOV_IN_API_KEY` as a private environment variable on the backend service.
-- **Never:** frontend/Vite env exposed to the browser, README, source code, or committed `.env` files.
-
-The official mandi resource currently exposes state/commodity filters and the sample key is explicitly intended for demonstration; serious data pulls need a personal key.
-
-## Agent development rules
-
-FarmHub is developed as a shared codebase.
-
-### Ownership
-
-- **Frontend agent:** `frontend/`
-- **Backend agent:** `backend/`
-- **ML/data:** `backend/ml/`
-- **Integration:** repository-level coordination and final validation
-
-### Git workflow
-
-For this repository, requested fixes and implementation work should be applied directly to `main` unless the user explicitly asks for a separate branch or PR.
-
-Agents must inspect the current repository before changing anything. They must not initialize a new repository, create unrelated Git history, reset `main`, force-push, or replace another agent's work.
-
-Every completed task should report:
-
-- commit SHA,
-- files changed,
-- tests/build checks performed,
-- API contracts changed (if any), and
-- anything intentionally left untouched.
-
-## Status
-
-FarmHub is under active development. The backend foundation and executable ML pipeline are in place; real-data model training/deployment and frontend-to-backend integration remain active work.
+Local Frontend Application:
+- Web: `http://localhost:5173`
 
 ---
 
-**FarmHub · presented by `.dot`**
+## Automated Verification
+
+Run frontend lint and production build:
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+Run backend test suites:
+```bash
+python -m pytest backend/tests -v
+python -m pytest backend/ml/tests -v
+```
+
+---
+
+## Production Deployment
+
+- **Database**: PostgreSQL with automatic schema compatibility and `DATABASE_URL` normalization (`postgres://` -> `postgresql://`).
+- **Web Service**: Containerized FastAPI service on Render or Docker-compatible host (`render.yaml`).
+- **Scheduled Sync**: Daily cron job executing official Data.gov.in mandi synchronization (`backend/scripts/sync_mandi.py`).
+- **Parent Brand**: Presented by `.dot` ecosystem.
+
+---
+
+**SHENNONG · presented by `.dot`**
