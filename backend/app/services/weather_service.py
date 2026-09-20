@@ -12,6 +12,10 @@ from backend.app.models.weather_cache import WeatherCache
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
 
+class WeatherUnavailable(RuntimeError):
+    """Raised when no live or cached weather is available for a district."""
+
+
 BIHAR_DISTRICT_COORDINATES = {
     "Patna": {"lat": 25.5941, "lon": 85.1376},
     "Purnia": {"lat": 25.7771, "lon": 87.4753},
@@ -153,30 +157,7 @@ async def fetch_weather_for_district(db: Session, district_name: str) -> Dict[st
         except Exception:
             pass
 
-    # 4. Climatological regional baseline for Bihar
-    today_iso = datetime.now().strftime("%Y-%m-%d")
-    return {
-        "district": matched_district,
-        "latitude": coords["lat"],
-        "longitude": coords["lon"],
-        "current_temperature_c": 30.0,
-        "current_wind_speed_kmh": 10.0,
-        "today_spray_advisory": {
-            "status": "MODERATE",
-            "message": "Typical seasonal Bihar humidity. Monitor field for moisture and spray in low-wind morning hours.",
-            "color": "amber"
-        },
-        "seven_day_forecast": [
-            {
-                "date": today_iso,
-                "temp_max_c": 33.0,
-                "temp_min_c": 24.0,
-                "rain_mm": 1.0,
-                "rain_prob_pct": 20.0,
-                "wind_speed_kmh": 10.0,
-                "spray_advisory": {"status": "GOOD", "message": "Normal agricultural spray conditions.", "color": "green"}
-            }
-        ],
-        "source": "Bihar Climatological Baseline",
-        "updated_at": now_utc.isoformat()
-    }
+    # No fabricated current conditions: return an explicit unavailable state.
+    raise WeatherUnavailable(
+        f"Live weather is temporarily unavailable for {matched_district}; no cached reading is available."
+    )
