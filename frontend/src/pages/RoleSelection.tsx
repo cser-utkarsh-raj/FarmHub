@@ -67,6 +67,7 @@ export default function RoleSelection() {
             <button
               key={r.id}
               onClick={() => setRole(r.id)}
+              aria-pressed={role === r.id}
               className={`
                 relative flex flex-col items-center gap-3 p-6 rounded-xl border transition-all duration-200
                 ${role === r.id
@@ -98,6 +99,9 @@ export default function RoleSelection() {
             Continue
           </Button>
         </div>
+        <footer className="pt-2 text-center text-xs text-muted-foreground">
+          FarmHub · presented by <span className="font-semibold text-foreground">.dot</span>
+        </footer>
       </div>
     </div>
   );
