@@ -63,15 +63,42 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def build_supervised(df: pd.DataFrame, horizons: Iterable[int] = HORIZONS) -> pd.DataFrame:
+    """Construct supervised learning samples from cleaned market data.
+    
+    For each horizon (7/30/90 days), creates training samples by pairing
+    anchor observations with future target prices at approximately the
+    specified horizon.
+    
+    Due to sparse official mandi observations (typically weekly, not daily),
+    targets are matched using merge_asof with a bounded tolerance. The 
+    DESIRED horizon (not actual gap) is stored as horizon_days to maintain
+    consistent forecast semantics across irregular observation schedules.
+    
+    For example, a "7-day forecast" uses the next available observation
+    within tolerance bounds, but the model learns to predict at the 7-day
+    horizon regardless of whether the actual gap is 7, 8, or 9 days.
+    
+    Rows with insufficient history for feature construction (lag/rolling
+    windows) will have NaN features and should be filtered before training.
+    """
     base = add_features(df); rows = []
     for horizon in horizons:
+        # Tolerance: allow matching to an observation within ±20% of horizon
+        # (minimum 3 days). This accommodates sparse mandi data while keeping
+        # horizon semantics meaningful.
+        tolerance_days = max(3, int(horizon * 0.20))
+        tolerance = pd.Timedelta(days=tolerance_days)
         for _, group in base.groupby(GROUP_COLUMNS, sort=False):
             group = group.sort_values("date")
             target = group[["date","modal_price"]].rename(columns={"date":"target_date","modal_price":"target_price"}).sort_values("target_date")
             anchors = group.copy(); anchors["desired_target_date"] = anchors["date"] + pd.to_timedelta(horizon, unit="D")
-            matched = pd.merge_asof(anchors.sort_values("desired_target_date"), target, left_on="desired_target_date", right_on="target_date", direction="forward", tolerance=pd.Timedelta(days=max(2,int(horizon*0.08))))
+            matched = pd.merge_asof(anchors.sort_values("desired_target_date"), target, left_on="desired_target_date", right_on="target_date", direction="forward", tolerance=tolerance)
             matched = matched[matched["target_date"] > matched["date"]].copy()
-            matched["horizon_days"] = (matched["target_date"] - matched["date"]).dt.days
+            # Store the DESIRED horizon, not the actual gap. This ensures
+            # consistent forecast semantics: a "7-day model" predicts 7 days
+            # ahead even if actual observations are 8-9 days apart.
+            matched["horizon_days"] = horizon
+            matched["actual_horizon_days"] = (matched["target_date"] - matched["date"]).dt.days
             matched["target_month"] = matched["target_date"].dt.month.astype(int)
             matched["target_week_of_year"] = matched["target_date"].dt.isocalendar().week.astype(int)
             matched["target_day_of_year"] = matched["target_date"].dt.dayofyear.astype(int)
