@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export default function FarmerOnboarding() {
     phone: "",
     password: "",
     location: "",
-    district: "Purnia",
+    district: "",
     landArea: "1",
     landUnit: "bigha",
     irrigation: "yes",
@@ -29,6 +29,12 @@ export default function FarmerOnboarding() {
   });
   const navigate = useNavigate();
   const totalSteps = 3;
+
+  useEffect(() => {
+    if (localStorage.getItem("farmhub_token")) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (loginPhone?: string, loginPassword?: string) => {
     setError("");
@@ -51,7 +57,7 @@ export default function FarmerOnboarding() {
           localStorage.setItem("farmhub_land_unit", me.farmer_profile.local_land_unit);
         }
       } catch {
-        if (!localStorage.getItem("farmhub_district")) localStorage.setItem("farmhub_district", "Purnia");
+        // The dashboard will load the profile using the authenticated token.
       }
       navigate("/dashboard");
     } catch (err) {
@@ -84,7 +90,7 @@ export default function FarmerOnboarding() {
         full_name: formData.name,
         password: formData.password,
         role: "FARMER",
-        district: formData.district,
+        district: formData.district.trim(),
         land_area: Number(formData.landArea),
         local_land_unit: formData.landUnit,
         irrigation_availability: formData.irrigation !== "no",
