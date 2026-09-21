@@ -16,17 +16,14 @@ from backend.ml.providers.crop_production import SPEC as PRODUCTION_SPEC, fetch_
 from backend.ml.providers.district_rainfall import SPEC as RAINFALL_SPEC, fetch_district_rainfall
 from backend.ml.providers.mandi_prices import MANDI_SPEC, VARIETY_SPEC, fetch_mandi_prices, fetch_variety_prices
 
-DEMO_API_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"
 DATASETS = {"mandi": {"filename": "bihar_market_prices.csv", "resource_id": MANDI_SPEC.resource_id, "name": MANDI_SPEC.name}, "variety": {"filename": "bihar_variety_prices.csv", "resource_id": VARIETY_SPEC.resource_id, "name": VARIETY_SPEC.name}, "rainfall": {"filename": "bihar_district_rainfall.csv", "resource_id": RAINFALL_SPEC.resource_id, "name": RAINFALL_SPEC.name}, "production": {"filename": "bihar_crop_production.csv", "resource_id": PRODUCTION_SPEC.resource_id, "name": PRODUCTION_SPEC.name}}
 
 
 def _api_key(cli_value: str | None) -> str:
     value = cli_value or os.getenv("DATA_GOV_IN_API_KEY")
-    if value:
-        return value
-    if os.getenv("CI", "").lower() == "true" or os.getenv("ENVIRONMENT", "").lower() == "production":
-        raise RuntimeError("DATA_GOV_IN_API_KEY must be provided by runtime secret storage in CI/production")
-    return DEMO_API_KEY
+    if not value:
+        raise RuntimeError("DATA_GOV_IN_API_KEY must be provided by runtime secret storage")
+    return value
 
 
 def _fetch_dataset(name: str, args: argparse.Namespace, api_key: str):

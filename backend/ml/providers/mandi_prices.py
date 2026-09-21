@@ -9,11 +9,35 @@ VARIETY_SPEC = ProviderSpec("35985678-0d79-46b4-9ed6-6f13308a1d24", "Variety-wis
 PRICE_COLUMNS = ["state", "district", "market", "commodity", "variety", "grade", "date", "min_price", "max_price", "modal_price"]
 STATE_FILTER_CANDIDATES = ("state.keyword", "state")
 
+_FIELD_ALIASES = {
+    "state": "state",
+    "district": "district",
+    "market": "market",
+    "commodity": "commodity",
+    "variety": "variety",
+    "grade": "grade",
+    "arrival_date": "date",
+    "date": "date",
+    "min_price": "min_price",
+    "max_price": "max_price",
+    "modal_price": "modal_price",
+}
+
 
 def _normalize_price_rows(rows: list[dict]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame(columns=PRICE_COLUMNS)
-    df = pd.DataFrame(rows).rename(columns={"State":"state", "District":"district", "Market":"market", "Commodity":"commodity", "Variety":"variety", "Grade":"grade", "Arrival_Date":"date", "Min_Price":"min_price", "Max_Price":"max_price", "Modal_Price":"modal_price"})
+
+    normalized_rows = []
+    for row in rows:
+        normalized = {}
+        for key, value in row.items():
+            canonical = _FIELD_ALIASES.get(str(key).strip().casefold())
+            if canonical:
+                normalized[canonical] = value
+        normalized_rows.append(normalized)
+
+    df = pd.DataFrame(normalized_rows)
     for column in PRICE_COLUMNS:
         if column not in df.columns:
             df[column] = None
