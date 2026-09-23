@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, BarChart3, Calculator, Leaf, Menu, Sprout, Store, Truck, X } from "lucide-react";
 import DotFooter from "@/components/DotFooter";
 import ShennongLogo from "@/components/ShennongLogo";
-import ShennongLandscape from "@/components/ShennongLandscape";
 
 export default function RoleSelection() {
   const [role, setRole] = useState<string | null>(null);
@@ -80,7 +79,7 @@ export default function RoleSelection() {
 
           <div className="shennong-hero-scene" aria-hidden="true">
             <div className="shennong-scene-glow" />
-            <ShennongLandscape />
+            <img className="shennong-real-hero-image" src="https://images.unsplash.com/photo-1643171916755-02c26a606f70?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=1800" alt="Agricultural fields and mountains" loading="eager" fetchPriority="high" />
             <div className="shennong-scene-note"><span>From</span><strong>Fields to<br />Better Futures</strong><small>Reliable data and insights for better decisions.</small></div>
             <div className="shennong-signpost"><span>Markets <b>→</b></span><span>Insights <b>→</b></span><span>Decisions <b>→</b></span></div>
           </div>
