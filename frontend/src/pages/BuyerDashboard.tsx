@@ -82,7 +82,7 @@ export default function BuyerDashboard() {
   const accepted = inquiries.filter((item) => item.status === "ACCEPTED").length;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="shennong-dashboard min-h-screen flex flex-col">
       <ShennongNavbar
         userRole={profile?.role as "BUYER" | "DISTRIBUTOR"}
         userName={business?.business_name || profile?.full_name}
