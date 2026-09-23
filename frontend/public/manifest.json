@@ -12,11 +12,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/farm-icon.svg",
-      "sizes": "40x40",
-      "type": "image/svg+xml"
     }
   ]
 }
