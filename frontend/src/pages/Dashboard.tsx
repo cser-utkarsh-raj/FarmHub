@@ -123,14 +123,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="shennong-dashboard min-h-screen flex flex-col">
       <ShennongNavbar userRole="FARMER" userName={meQuery.data.full_name} userDistrict={district} />
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs uppercase tracking-wider font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                Bihar Farmer Portal
+                Farmer Workspace
               </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">Namaste, {meQuery.data.full_name}</h1>
