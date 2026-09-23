@@ -69,9 +69,9 @@ export default function RoleSelection() {
       <main id="home">
         <section className="shennong-hero shennong-container">
           <div className="shennong-hero-copy">
-            <div className="shennong-eyebrow"><Leaf className="h-3.5 w-3.5" /> Data · Markets · Better Decisions</div>
-            <h1>Smarter Agriculture for <em>a Brighter Tomorrow</em></h1>
-            <p>Real market data. Practical insights. Actionable tools for farmers, traders, and agricultural businesses.</p>
+            <div className="shennong-eyebrow"><Leaf className="h-3.5 w-3.5" /> Agricultural market intelligence</div>
+            <h1>Know your market. <em>Plan your crop. Sell with confidence.</em></h1>
+            <p>Market prices, crop economics, forecasts, and practical tools built around real agricultural decisions.</p>
             <div className="flex flex-wrap gap-3">
               <Button className="shennong-dark-button rounded-full px-7 h-12" onClick={() => document.getElementById("roles")?.scrollIntoView({ behavior: "smooth" })}>Explore Markets <ArrowRight className="ml-2 h-4 w-4" /></Button>
               <button className="shennong-outline-action" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}><span className="shennong-play">▶</span> See how it works</button>
