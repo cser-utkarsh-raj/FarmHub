@@ -13,7 +13,7 @@ export const DotFooter: React.FC<DotFooterProps> = ({
     <footer className={`pt-6 pb-4 border-t border-border text-center space-y-2 ${className}`}>
       {showShennongTagline && (
         <p className="text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">Shennong</span> · Agricultural decision support for Bihar
+          <span className="font-semibold text-foreground">Shennong</span> · Markets. Insights. Better decisions.
         </p>
       )}
       <div className="flex justify-center items-center opacity-80 cursor-default">
