@@ -6,6 +6,19 @@ Shennong is a production-oriented agricultural decision-support system built for
 
 ---
 
+## Brand & Identity
+
+Shennong uses one canonical visual identity throughout the application.
+
+- **Product:** Shennong
+- **Parent brand:** `.dot`
+- **Canonical logo:** `frontend/public/farm-icon.svg`
+- **Shared application logo component:** `frontend/src/components/ShennongLogo.tsx`
+- The same Shennong logo is used across the landing page, navigation, and internal application pages.
+- The logo asset is also used by the PWA service worker/manifest as the application icon.
+
+---
+
 ## Authentic User Roles
 
 Shennong serves three key participants in the agricultural value chain:
@@ -36,10 +49,10 @@ Shennong organizes the complete decision-making workflow:
 FarmHub/
 ├── frontend/                 # React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
 │   ├── src/
-│   │   ├── components/       # ShennongNavbar, DotFooter, UI primitives
+│   │   ├── components/       # ShennongNavbar, ShennongLogo, DotFooter, UI primitives
 │   │   ├── pages/            # RoleSelection, Onboarding, Dashboards, Market Intelligence
 │   │   └── lib/              # API client and formatting utilities
-│   ├── public/               # Vector logos, icons, PWA manifest
+│   ├── public/               # Canonical logo, vector icons, PWA manifest
 │   └── package.json
 │
 ├── backend/                  # Python + FastAPI + SQLAlchemy + Scikit-Learn
@@ -67,7 +80,7 @@ FarmHub/
 cd backend
 python -m venv .venv
 # On Windows:
-.venv\Scripts\activate
+.venv\\Scripts\\activate
 # On Linux/macOS:
 source .venv/bin/activate
 
